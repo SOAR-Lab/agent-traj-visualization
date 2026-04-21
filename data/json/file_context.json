@@ -1,0 +1,1407 @@
+[
+  {
+    "step_id": 0,
+    "file_read": "lollms/main_config.py",
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 1,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 2,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 3,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 4,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 5,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 6,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 7,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 8,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 9,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 10,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 11,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 12,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 13,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 14,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 15,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 16,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 17,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 18,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 19,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 20,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 21,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 22,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 23,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 24,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 25,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 26,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 27,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 28,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 29,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 30,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 31,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 32,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 33,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 34,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 35,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 36,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 37,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 38,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 39,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 40,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 41,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 42,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 43,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 44,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 45,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 46,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 47,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 48,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 49,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 50,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 51,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 52,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 53,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 54,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 55,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 56,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 57,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 58,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 59,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 60,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 61,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 62,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 63,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 64,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 65,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 66,
+    "file_read": null,
+    "files_seen_so_far": [
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 67,
+    "file_read": "client_session.py",
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 68,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 69,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 70,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 71,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 72,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 73,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 74,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 75,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 76,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 77,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 78,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 79,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 80,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 81,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 82,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 83,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 84,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 85,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 86,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 87,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 88,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 89,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 90,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 91,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 92,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 93,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 94,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 95,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 96,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 97,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 98,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 99,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 100,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 101,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 102,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 103,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 104,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 105,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 106,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 107,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 108,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 109,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 110,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 111,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 112,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 113,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 114,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 115,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 116,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 117,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 118,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 119,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 120,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 121,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 122,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 123,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 124,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 125,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 126,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 127,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 128,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 129,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 130,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 131,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 132,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 133,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 134,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 135,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 136,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 137,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 138,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 139,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 140,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 141,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 142,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 143,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 144,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 145,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 146,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 147,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 148,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 149,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 150,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 151,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 152,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 153,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 154,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 155,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 156,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 157,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 158,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 159,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 160,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 161,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 162,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 163,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 164,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 165,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 166,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 167,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 168,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 169,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 170,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 171,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 172,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 173,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 174,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 175,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 176,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 177,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 178,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 179,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 180,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 181,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 182,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  },
+  {
+    "step_id": 183,
+    "file_read": null,
+    "files_seen_so_far": [
+      "client_session.py",
+      "lollms/main_config.py"
+    ]
+  }
+]
