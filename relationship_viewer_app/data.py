@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+from collections import Counter
 from pathlib import Path
 
 import pandas as pd
@@ -13,9 +14,12 @@ from relationship_viewer_app.constants import (
     ACTIONS_CATEGORIES_CAT_COL,
     ACTIONS_CATEGORIES_FOLDER,
     ACTIONS_CATEGORIES_ITER_COL,
+    BAD_RELS,
     CATEGORY_COLOR,
+    LOOPISH_RELS,
     LOGS_DIR,
     REL_LABEL_COL,
+    REL_SPECS,
     ROOT,
 )
 
@@ -186,3 +190,63 @@ def bug_report_url_from_filename(filename: str) -> str | None:
         return None
     owner, repo, issue_num = match.groups()
     return f"https://github.com/{owner}/{repo}/issues/{issue_num}"
+
+
+@st.cache_data
+def build_overview_rows(task_files: tuple[str, ...], results_path: Path) -> list[dict]:
+    results = load_results(results_path)
+    rows = []
+
+    for filename in task_files:
+        task_id = Path(filename).stem
+        cat_df = load_categories(filename)
+        ordered_categories = (
+            cat_df.sort_values(ACTIONS_CATEGORIES_ITER_COL)[ACTIONS_CATEGORIES_CAT_COL]
+            .astype(str)
+            .tolist()
+        )
+        max_iteration = int(cat_df[ACTIONS_CATEGORIES_ITER_COL].max())
+
+        relation_counts: Counter[str] = Counter()
+        first_flagged_iteration: int | None = None
+
+        for family in REL_SPECS:
+            relation_frame = load_relation_labels(family, filename)
+            if relation_frame.empty:
+                continue
+
+            for index, row in relation_frame.iterrows():
+                relation = normalize_rel(row[REL_LABEL_COL])
+                if not relation:
+                    continue
+                relation_counts[relation] += 1
+                if relation in BAD_RELS and first_flagged_iteration is None:
+                    first_flagged_iteration = int(index)
+
+        matched_patch_categories = get_patch_categories(task_id, results)
+        patch_status = derive_primary_patch_status(matched_patch_categories)
+        outcome = "pass" if patch_status == "RESOLVED" else "fail"
+        flagged_relations = sorted(
+            relation
+            for relation in relation_counts
+            if relation in BAD_RELS or relation in LOOPISH_RELS
+        )
+
+        rows.append(
+            {
+                "filename": filename,
+                "task_id": task_id,
+                "agent_name": "autocoderover",
+                "outcome": outcome,
+                "patch_status": patch_status,
+                "matched_patch_categories": matched_patch_categories,
+                "iteration_count": max_iteration + 1,
+                "categories": ordered_categories,
+                "relation_counts": dict(relation_counts),
+                "flagged_relations": flagged_relations,
+                "first_flagged_iteration": first_flagged_iteration,
+                "bug_url": bug_report_url_from_filename(filename),
+            }
+        )
+
+    return rows

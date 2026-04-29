@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 
+import pandas as pd
 import streamlit as st
 
 from relationship_viewer_app.constants import (
@@ -15,6 +16,43 @@ from relationship_viewer_app.models import SidebarControls
 
 INSPECTOR_PAGE_TOGGLE_KEY = "relationship_viewer_inspector_separate_page"
 INSPECTOR_PAGE_TOGGLE_QUERY_KEY = "inspector_page"
+OVERVIEW_SELECTED_FILE_KEY = "relationship_viewer_overview_selected_file"
+
+
+def render_app_header(
+    *,
+    current_route: str,
+    inspector_available: bool,
+    selected_task_id: str | None = None,
+) -> str:
+    del selected_task_id
+
+    with st.container(horizontal=True, vertical_alignment="center"):
+        st.title("Relationship Viewer")
+        st.space("stretch")
+        if st.button(
+            "Overview",
+            type="primary" if current_route == "Overview" else "secondary",
+            key="nav_overview",
+        ):
+            return "Overview"
+        if st.button(
+            "Analysis",
+            type="primary" if current_route == "Analysis" else "secondary",
+            key="nav_analysis",
+        ):
+            return "Analysis"
+        if st.button(
+            "Inspector",
+            type="primary" if current_route == "Inspector" else "secondary",
+            disabled=not inspector_available,
+            help=None if inspector_available else "Select a graph node in Analysis first.",
+            key="nav_inspector",
+        ):
+            return "Inspector"
+
+    st.divider()
+    return current_route
 
 
 def wrapped_log_block(text: str) -> None:
@@ -23,6 +61,218 @@ def wrapped_log_block(text: str) -> None:
     text = re.sub(r"[ \t]+\n", "\n", text)
     text = re.sub(r"\n{3,}", "\n\n", text).strip()
     st.code(text, language=None, wrap_lines=True)
+
+
+def _format_task_name(task_id: str) -> str:
+    match = re.match(r"(.+)__(.+)-(\d+)$", task_id)
+    if not match:
+        return task_id
+    owner, repo, issue = match.groups()
+    return f"{repo} #{issue}"
+
+
+def _compact_categories(categories: list[str], limit: int = 5) -> str:
+    if not categories:
+        return "none"
+
+    grouped = []
+    current = categories[0]
+    count = 0
+    for category in categories:
+        if category == current:
+            count += 1
+            continue
+        grouped.append((current, count))
+        current = category
+        count = 1
+    grouped.append((current, count))
+
+    parts = [
+        f"{category} x{count}" if count > 1 else category
+        for category, count in grouped[:limit]
+    ]
+    if len(grouped) > limit:
+        parts.append("...")
+    return " > ".join(parts)
+
+
+def _format_flags(row: dict, limit: int = 4) -> str:
+    flags = []
+    if row.get("first_flagged_iteration") is not None:
+        flags.append(f"first flagged: i{row['first_flagged_iteration']}")
+    flags.extend(str(tag).lower() for tag in row.get("flagged_relations", []))
+    return ", ".join(flags[:limit]) if flags else "none"
+
+
+def _relation_counts_df(relation_counts: dict[str, int], limit: int = 8) -> pd.DataFrame:
+    if not relation_counts:
+        return pd.DataFrame(columns=["Relation", "Count"])
+
+    sorted_counts = sorted(
+        relation_counts.items(),
+        key=lambda item: item[1],
+        reverse=True,
+    )[:limit]
+    return pd.DataFrame(
+        [{"Relation": relation, "Count": count} for relation, count in sorted_counts]
+    )
+
+
+def _overview_table_df(rows: list[dict]) -> pd.DataFrame:
+    return pd.DataFrame(
+        [
+            {
+                "Agent": row["agent_name"],
+                "Outcome": row["outcome"],
+                "Iterations": row["iteration_count"],
+                "Task": _format_task_name(row["task_id"]),
+                "Behavior": _compact_categories(row.get("categories", [])),
+                "Tags": _format_flags(row),
+            }
+            for row in rows
+        ]
+    )
+
+
+def _overview_summary_metrics(rows: list[dict]) -> None:
+    total = len(rows)
+    pass_count = sum(1 for row in rows if row["outcome"] == "pass")
+    fail_count = sum(1 for row in rows if row["outcome"] == "fail")
+    avg_iterations = (
+        sum(int(row["iteration_count"]) for row in rows) / total if total else 0
+    )
+
+    metric_cols = st.columns(4)
+    metric_cols[0].metric("Runs", total)
+    metric_cols[1].metric("Pass", pass_count)
+    metric_cols[2].metric("Fail", fail_count)
+    metric_cols[3].metric("Avg iterations", f"{avg_iterations:.1f}")
+
+
+def render_overview_page(rows: list[dict]) -> str | None:
+    if not rows:
+        st.info("No task runs are available.")
+        return None
+
+    selected_filename = st.session_state.get(OVERVIEW_SELECTED_FILE_KEY)
+    if selected_filename not in {row["filename"] for row in rows}:
+        selected_filename = rows[0]["filename"]
+        st.session_state[OVERVIEW_SELECTED_FILE_KEY] = selected_filename
+
+    st.markdown("### Runs")
+    _overview_summary_metrics(rows)
+
+    tag_options = sorted(
+        {
+            tag.lower()
+            for row in rows
+            for tag in row.get("flagged_relations", [])
+        }
+    )
+
+    filter_col, table_col, summary_col = st.columns([0.18, 0.56, 0.26], gap="large")
+
+    with filter_col:
+        with st.container(border=True):
+            st.caption("FILTERS")
+            outcome_filter = st.radio(
+                "Outcome",
+                ["all", "pass", "fail"],
+                horizontal=False,
+                label_visibility="visible",
+            )
+            selected_tags = st.multiselect("Tags", tag_options)
+            search_text = st.text_input("Task search", placeholder="django, sympy, issue...")
+
+    filtered_rows = rows
+    if outcome_filter != "all":
+        filtered_rows = [row for row in filtered_rows if row["outcome"] == outcome_filter]
+    if selected_tags:
+        selected_tag_set = set(selected_tags)
+        filtered_rows = [
+            row
+            for row in filtered_rows
+            if selected_tag_set.intersection(
+                {tag.lower() for tag in row.get("flagged_relations", [])}
+            )
+        ]
+    if search_text.strip():
+        needle = search_text.strip().lower()
+        filtered_rows = [
+            row
+            for row in filtered_rows
+            if needle in row["task_id"].lower()
+            or needle in _format_task_name(row["task_id"]).lower()
+        ]
+
+    if filtered_rows and selected_filename not in {row["filename"] for row in filtered_rows}:
+        selected_filename = filtered_rows[0]["filename"]
+        st.session_state[OVERVIEW_SELECTED_FILE_KEY] = selected_filename
+
+    with table_col:
+        st.caption("RUN INDEX")
+        if not filtered_rows:
+            st.warning("No runs match the current filters.")
+        else:
+            table_state = st.dataframe(
+                _overview_table_df(filtered_rows),
+                hide_index=True,
+                use_container_width=True,
+                height=min(560, 38 * len(filtered_rows) + 38),
+                on_select="rerun",
+                selection_mode="single-row",
+                key="overview_run_table",
+                column_config={
+                    "Iterations": st.column_config.NumberColumn(
+                        "IT",
+                        help="Number of detailed iterations in the run.",
+                    ),
+                    "Behavior": st.column_config.TextColumn(
+                        "Behavior",
+                        help="Compressed sequence of action categories.",
+                    ),
+                },
+            )
+            selected_indices = table_state.selection.rows
+            if selected_indices and selected_indices[0] < len(filtered_rows):
+                selected_filename = filtered_rows[selected_indices[0]]["filename"]
+                st.session_state[OVERVIEW_SELECTED_FILE_KEY] = selected_filename
+
+    selected_row = next(
+        (row for row in rows if row["filename"] == selected_filename),
+        rows[0],
+    )
+
+    with summary_col:
+        with st.container(border=True):
+            st.caption("RUN SUMMARY")
+            st.subheader(_format_task_name(selected_row["task_id"]))
+            st.caption(selected_row["task_id"])
+            metric_cols = st.columns(2)
+            metric_cols[0].metric("Outcome", selected_row["outcome"].upper())
+            metric_cols[1].metric("Iterations", selected_row["iteration_count"])
+            st.markdown("**Behavior**")
+            st.write(_compact_categories(selected_row.get("categories", []), limit=10))
+            st.markdown("**Relations**")
+            relation_counts_df = _relation_counts_df(
+                selected_row.get("relation_counts", {})
+            )
+            if relation_counts_df.empty:
+                st.caption("No labeled relations")
+            else:
+                st.dataframe(
+                    relation_counts_df,
+                    hide_index=True,
+                    use_container_width=True,
+                )
+            st.markdown("**Flags**")
+            st.write(_format_flags(selected_row, limit=6))
+            if selected_row.get("bug_url"):
+                st.link_button("Open bug report", selected_row["bug_url"], use_container_width=True)
+            if st.button("Open analysis", type="primary", use_container_width=True):
+                return selected_row["filename"]
+
+    return None
 
 
 def action_category_legend(title: str = "#### Action Categories") -> None:
@@ -124,7 +374,7 @@ def render_inspector_page_header(
         st.caption(task_id)
         st.title("Inspector")
     with button_col:
-        back_pressed = st.button("Back to graph", use_container_width=True)
+        back_pressed = st.button("Back to analysis", use_container_width=True)
 
     st.divider()
 
@@ -174,9 +424,15 @@ def set_inspector_page_preference(value: bool) -> None:
         del st.query_params[INSPECTOR_PAGE_TOGGLE_QUERY_KEY]
 
 
-def render_sidebar_controls(task_files: list[str]) -> tuple[str, SidebarControls]:
+def render_sidebar_controls(
+    task_files: list[str],
+    default_filename: str | None = None,
+) -> tuple[str, SidebarControls]:
     st.sidebar.header("Dataset")
-    filename = st.sidebar.selectbox("Task file", task_files)
+    selected_index = 0
+    if default_filename in task_files:
+        selected_index = task_files.index(default_filename)
+    filename = st.sidebar.selectbox("Task file", task_files, index=selected_index)
 
     graph_mode = st.sidebar.radio(
         "Graph mode",
@@ -275,11 +531,7 @@ def render_patch_overview(
 
     if matched_patch_categories:
         st.markdown("**All matched patch result categories**")
-        badge_html = " ".join(
-            f'<span style="display:inline-block;padding:4px 10px;margin:2px;border-radius:12px;background:#eee;border:1px solid #ccc;">{category}</span>'
-            for category in matched_patch_categories
-        )
-        st.markdown(badge_html, unsafe_allow_html=True)
+        st.write(", ".join(matched_patch_categories))
 
 
 def render_graph_guide(graph_mode: str) -> None:
@@ -322,10 +574,7 @@ def _render_relation_list(title: str, rels: list[dict]) -> None:
 
     for family, family_rels in grouped.items():
         pretty_family = family.replace("_", " → ").title()
-        st.markdown(
-            f"<span style='color:#666'>{pretty_family}</span>",
-            unsafe_allow_html=True,
-        )
+        st.caption(pretty_family)
         for rel in family_rels:
             st.markdown(
                 f"- {_pretty_node_id(rel['source'])} → {_pretty_node_id(rel['target'])} : **{rel['relation']}**"
