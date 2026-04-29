@@ -6,6 +6,7 @@ import re
 
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
 
 from relationship_viewer_app.constants import (
     CATEGORY_COLOR,
@@ -22,13 +23,13 @@ OVERVIEW_SELECTED_FILE_KEY = "relationship_viewer_overview_selected_file"
 def render_app_header(
     *,
     current_route: str,
-    inspector_available: bool,
     selected_task_id: str | None = None,
 ) -> str:
-    del selected_task_id
-
     with st.container(horizontal=True, vertical_alignment="center"):
-        st.title("Relationship Viewer")
+        with st.container():
+            st.title("Inspector" if current_route == "Inspector" else "Relationship Viewer")
+            if current_route == "Inspector" and selected_task_id:
+                st.caption(selected_task_id)
         st.space("stretch")
         if st.button(
             "Overview",
@@ -42,14 +43,6 @@ def render_app_header(
             key="nav_analysis",
         ):
             return "Analysis"
-        if st.button(
-            "Inspector",
-            type="primary" if current_route == "Inspector" else "secondary",
-            disabled=not inspector_available,
-            help=None if inspector_available else "Select a graph node in Analysis first.",
-            key="nav_inspector",
-        ):
-            return "Inspector"
 
     st.divider()
     return current_route
@@ -365,20 +358,32 @@ button[kind="header"][aria-label="Close sidebar"] {
     )
 
 
-def render_inspector_page_header(
-    *,
-    task_id: str,
-) -> bool:
-    title_col, button_col = st.columns([0.82, 0.18], vertical_alignment="top")
-    with title_col:
-        st.caption(task_id)
-        st.title("Inspector")
-    with button_col:
-        back_pressed = st.button("Back to analysis", use_container_width=True)
-
-    st.divider()
-
-    return back_pressed
+def scroll_page_to_top() -> None:
+    components.html(
+        """
+<script>
+const scrollTop = () => {
+  const doc = window.parent.document;
+  window.parent.scrollTo(0, 0);
+  [
+    doc.scrollingElement,
+    doc.documentElement,
+    doc.body,
+    doc.querySelector('[data-testid="stAppViewContainer"]'),
+    doc.querySelector('[data-testid="stMain"]'),
+    doc.querySelector('.stMain')
+  ].filter(Boolean).forEach((el) => {
+    el.scrollTop = 0;
+    if (el.scrollTo) el.scrollTo(0, 0);
+  });
+};
+setTimeout(scrollTop, 0);
+setTimeout(scrollTop, 150);
+setTimeout(scrollTop, 400);
+</script>
+        """,
+        height=0,
+    )
 
 
 def format_patch_status_label(primary_status: str) -> str:

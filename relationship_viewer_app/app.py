@@ -38,15 +38,16 @@ from relationship_viewer_app.ui import (
     render_app_header,
     render_graph_guide,
     render_inspector,
-    render_inspector_page_header,
     render_overview_page,
     render_patch_overview,
     render_relationship_metrics,
     render_sidebar_controls,
     render_shared_legend,
+    scroll_page_to_top,
 )
 
 APP_ROUTE_STATE_KEY = "relationship_viewer_route"
+INSPECTOR_SCROLL_TOP_STATE_KEY = "relationship_viewer_inspector_scroll_top"
 DETAIL_PAGE_STATE_KEY = "relationship_viewer_page"
 DETAIL_NODE_STATE_KEY = "relationship_viewer_selected_node"
 DETAIL_FILENAME_STATE_KEY = "relationship_viewer_filename"
@@ -113,7 +114,7 @@ def _build_view_context(filename: str, controls: SidebarControls) -> dict:
 
 
 def main() -> None:
-    st.set_page_config(layout="wide")
+    st.set_page_config(page_title="Relationship Viewer", layout="wide")
 
     if not ROOT.exists():
         st.error(f"Folder not found: {ROOT.resolve()}")
@@ -132,25 +133,22 @@ def main() -> None:
     route = st.session_state.get(APP_ROUTE_STATE_KEY, "Overview")
     selected_filename = st.session_state.get(DETAIL_FILENAME_STATE_KEY)
     selected_task_id = Path(selected_filename).stem if selected_filename else None
-    header_controls = st.session_state.get(DETAIL_CONTROLS_STATE_KEY)
-    inspector_available = (
-            selected_filename in task_files
-            and detail_node_id is not None
-            and isinstance(header_controls, SidebarControls)
-    )
 
     if route == "Inspector":
         hide_sidebar_chrome()
 
     selected_route = render_app_header(
         current_route=route,
-        inspector_available=inspector_available,
         selected_task_id=selected_task_id,
     )
+    if route == "Inspector" and st.session_state.pop(INSPECTOR_SCROLL_TOP_STATE_KEY, False):
+        scroll_page_to_top()
+
     if selected_route != route:
         st.session_state[APP_ROUTE_STATE_KEY] = selected_route
         if selected_route != "Inspector":
             st.session_state[DETAIL_PAGE_STATE_KEY] = "graph"
+            st.session_state.pop(DETAIL_NODE_STATE_KEY, None)
         st.rerun()
 
     if route == "Overview":
@@ -178,16 +176,13 @@ def main() -> None:
                 or not isinstance(controls, SidebarControls)
                 or not detail_node_id
         ):
-            if render_inspector_page_header(task_id=selected_task_id or "No run selected"):
-                st.session_state[APP_ROUTE_STATE_KEY] = "Analysis"
-                st.session_state[DETAIL_PAGE_STATE_KEY] = "graph"
-                st.rerun()
             with st.container(border=True):
                 st.subheader("No inspector target selected")
                 st.write("Open a run in Analysis and select a graph node to inspect raw evidence.")
                 if st.button("Open analysis", type="primary"):
                     st.session_state[APP_ROUTE_STATE_KEY] = "Analysis"
                     st.session_state[DETAIL_PAGE_STATE_KEY] = "graph"
+                    st.session_state.pop(DETAIL_NODE_STATE_KEY, None)
                     st.rerun()
             return
 
@@ -199,13 +194,6 @@ def main() -> None:
 
         if detail_node_id not in view["available_node_ids"]:
             st.session_state.pop(DETAIL_NODE_STATE_KEY, None)
-            st.session_state[APP_ROUTE_STATE_KEY] = "Analysis"
-            st.session_state[DETAIL_PAGE_STATE_KEY] = "graph"
-            st.rerun()
-
-        if render_inspector_page_header(
-                task_id=view["task_id"],
-        ):
             st.session_state[APP_ROUTE_STATE_KEY] = "Analysis"
             st.session_state[DETAIL_PAGE_STATE_KEY] = "graph"
             st.rerun()
@@ -264,6 +252,7 @@ def main() -> None:
         st.session_state[DETAIL_NODE_STATE_KEY] = str(selected)
         st.session_state[DETAIL_PAGE_STATE_KEY] = "inspector"
         st.session_state[APP_ROUTE_STATE_KEY] = "Inspector"
+        st.session_state[INSPECTOR_SCROLL_TOP_STATE_KEY] = True
         st.rerun()
 
     if controls.inspector_separate_page:
