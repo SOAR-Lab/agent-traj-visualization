@@ -72,7 +72,7 @@ You can click any node to inspect the underlying text and the labeled relations 
 ## Repository Layout
 
 ```text
-log_streamlit_demo/
+agent-traj-visualization/
 |- relationship_viewer.py
 |- README.md
 |- pyproject.toml
@@ -103,8 +103,6 @@ log_streamlit_demo/
 |     |- agraph_graph.json
 |- archive/
 |  |- python_prototypes/
-|- AXE_logs/
-|- sweagent_claude4_trajs/
 ```
 
 ## Which Files Matter For The Current App
@@ -117,7 +115,9 @@ The current Streamlit app primarily depends on:
 - `reconstructed_autocoderover/`
 - `data/json/results.json`
 
-The other JSON files in `data/json/` are legacy artifacts from earlier prototypes and are not used by the current relationship viewer. Likewise, `AXE_logs/` and `sweagent_claude4_trajs/` are part of earlier exploratory work and remain in the repo for archive.
+The other JSON files in `data/json/` are legacy artifacts from earlier prototypes and are not used by the current relationship viewer.
+
+Large raw trajectory folders from earlier experiments are intentionally not included in this checkout. In particular, the archived AXE and SWE-agent prototypes refer to local folders named `AXE_logs/` and `sweagent_claude4_trajs/`, but those folders were removed from the repo because they were too large. Restore those folders locally only if you need to run the archived prototype scripts; the current `relationship_viewer.py` app does not require them.
 
 ## Environment And Setup
 
@@ -175,7 +175,7 @@ From the project root:
 streamlit run relationship_viewer.py
 ```
 
-If you are using the checked-in virtual environment:
+If you already have a local virtual environment in this checkout:
 
 ```powershell
 .venv\Scripts\streamlit.exe run relationship_viewer.py

@@ -3,6 +3,8 @@
 `relationship_viewer.py` is the current app.
 Root-level JSON files were moved to `data/json/`.
 
+Large raw input folders used by some archived scripts are not included in the current repo checkout. The AXE prototypes expect a local `AXE_logs/` folder, and the SWE-agent parser expects a local `sweagent_claude4_trajs/` folder. Restore those folders locally only if you need to run those archived scripts.
+
 Archived prototypes:
 
 - `v0_pycharm_stub.py`: original PyCharm starter file.
