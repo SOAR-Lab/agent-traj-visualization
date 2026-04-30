@@ -9,10 +9,13 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 from relationship_viewer_app.constants import (
+    BAD_RELS,
     CATEGORY_COLOR,
     EDGE_FAMILY_OPTIONS,
+    LOOPISH_RELS,
     STRUCTURAL_EDGE_OPTIONS,
 )
+from relationship_viewer_app.context import extract_file_mentions, summarize_action
 from relationship_viewer_app.models import SidebarControls
 
 INSPECTOR_PAGE_TOGGLE_KEY = "relationship_viewer_inspector_separate_page"
@@ -594,22 +597,25 @@ def render_patch_overview(
     patch_status: str,
     matched_patch_categories: list[str],
 ) -> None:
-    col1, col2, col3 = st.columns([0.55, 0.1, 0.35])
+    st.caption("SELECTED RUN")
+    title_col, action_col = st.columns([0.72, 0.28], vertical_alignment="center")
 
-    with col1:
-        st.metric("Bug report", task_id)
+    with title_col:
+        st.subheader(_format_task_name(task_id))
+        st.caption(task_id)
+    with action_col:
         if bug_url:
-            st.link_button("Open bug report", bug_url)
-    with col2:
-        if graph_mode == "Iteration":
-            st.metric("Iterations", iterations_count)
-        else:
-            st.metric("Iterations", steps_count)
-    with col3:
-        st.metric("Patch result", format_patch_status_label(patch_status))
+            st.link_button("Open bug report", bug_url, use_container_width=True)
+
+    count_label = "Iterations" if graph_mode == "Iteration" else "Steps"
+    count_value = iterations_count if graph_mode == "Iteration" else steps_count
+    metric_cols = st.columns(3)
+    metric_cols[0].metric("Graph mode", graph_mode)
+    metric_cols[1].metric(count_label, count_value)
+    metric_cols[2].metric("Patch result", format_patch_status_label(patch_status))
 
     if matched_patch_categories:
-        st.markdown("**All matched patch result categories**")
+        st.caption("Patch result categories")
         with st.container(horizontal=True):
             for category in matched_patch_categories:
                 st.badge(category, color=patch_category_badge_color(category))
@@ -679,11 +685,16 @@ def _iteration_context_df(iterations: list[dict]) -> pd.DataFrame:
     )
 
 
-def render_iteration_context_panel(iterations: list[dict]) -> None:
+def render_iteration_context_panel(
+    iterations: list[dict],
+    *,
+    show_heading: bool = True,
+) -> None:
     if not iterations:
         return
 
-    st.markdown("### Iteration Context")
+    if show_heading:
+        st.markdown("### Iteration Context")
     st.caption(
         "Collapsed iteration nodes are summarized from the reconstructed log: action, files mentioned, and relation signals."
     )
@@ -734,6 +745,91 @@ def _render_relation_column(title: str, rels: list[dict]) -> None:
             )
 
 
+def _short_path(path: str) -> str:
+    normalized = path.replace("\\", "/").strip()
+    return normalized.rsplit("/", 1)[-1] if "/" in normalized else normalized
+
+
+def _relation_signal_color(relation: str) -> str:
+    if relation in BAD_RELS:
+        return "red"
+    if relation in LOOPISH_RELS:
+        return "violet"
+    if relation in {"Alignment", "Follow-up", "Follow up", "Refinement", "Informative", "Triggering"}:
+        return "green"
+    if relation in {"No influence", "No-influence"}:
+        return "gray"
+    return "orange"
+
+
+def _flagged_relation_labels(rels: list[dict]) -> list[str]:
+    labels = sorted(
+        {
+            rel["relation"]
+            for rel in rels
+            if rel["relation"] in BAD_RELS or rel["relation"] in LOOPISH_RELS
+        }
+    )
+    return labels
+
+
+def _render_badge_row(values: list[str], *, color: str = "gray") -> None:
+    if not values:
+        st.caption("none")
+        return
+    with st.container(horizontal=True):
+        for value in values:
+            st.badge(_short_path(value), color=color, help=value)
+
+
+def _render_relation_badges(relations: list[str]) -> None:
+    if not relations:
+        st.caption("none")
+        return
+    with st.container(horizontal=True):
+        for relation in relations:
+            st.badge(relation, color=_relation_signal_color(relation))
+
+
+def _render_inspector_evidence_header(
+    *,
+    title: str,
+    subtitle: str,
+    category: str,
+    span: str,
+    action_context: str,
+    files: list[str],
+    incoming_count: int,
+    outgoing_count: int,
+    flagged_relations: list[str],
+) -> None:
+    with st.container(border=True):
+        st.caption("INSPECTOR TARGET")
+        st.subheader(title)
+        if subtitle:
+            st.caption(subtitle)
+
+        metric_cols = st.columns(4)
+        metric_cols[0].metric("Category", category or "unknown")
+        metric_cols[1].metric("Span", span)
+        metric_cols[2].metric("Incoming", incoming_count)
+        metric_cols[3].metric("Outgoing", outgoing_count)
+
+        if action_context:
+            st.markdown("**Action context**")
+            st.write(action_context)
+
+        file_col, relation_col = st.columns(2)
+        with file_col:
+            st.markdown("**Files mentioned**")
+            _render_badge_row(files[:4])
+        with relation_col:
+            st.markdown("**Flagged relations**")
+            _render_relation_badges(flagged_relations)
+
+        st.caption("Raw logs below are the evidence for this selected graph target.")
+
+
 def render_inspector(
     *,
     selected: str | None,
@@ -766,21 +862,33 @@ def render_inspector(
             node_kind,
             node_kind,
         )
-        st.subheader(f"Step {step_index} · {kind_name}")
-        if category:
-            st.write("Action category:", category)
-
         rels_for_node = [
             edge
             for edge in edge_records
             if edge["source"] == selected_id or edge["target"] == selected_id
         ]
+        incoming = [edge for edge in rels_for_node if edge["target"] == selected_id]
+        outgoing = [edge for edge in rels_for_node if edge["source"] == selected_id]
+        files = extract_file_mentions(
+            entry.get("thought", ""),
+            entry.get("action", ""),
+            entry.get("result", ""),
+        )
+
+        _render_inspector_evidence_header(
+            title=f"Step {step_index} · {kind_name}",
+            subtitle=f"Detailed node {selected_id}",
+            category=category,
+            span=f"Step {step_index}",
+            action_context=summarize_action(entry.get("action", "")),
+            files=files,
+            incoming_count=len(incoming),
+            outgoing_count=len(outgoing),
+            flagged_relations=_flagged_relation_labels(rels_for_node),
+        )
 
         if rels_for_node:
             st.markdown("### Relations touching this node")
-
-            incoming = [edge for edge in rels_for_node if edge["target"] == selected_id]
-            outgoing = [edge for edge in rels_for_node if edge["source"] == selected_id]
 
             col_in, col_out = st.columns(2)
             with col_in:
@@ -802,30 +910,39 @@ def render_inspector(
 
     iteration_id = int(selected_id.replace("IT_", ""))
     iteration = iterations[iteration_id]
-    st.subheader(f"Iteration {iteration_id}")
-    st.write("Category: ", iteration["category"])
-
     rels_for_iteration = [
         edge
         for edge in edge_records
         if step_iteration.get(edge["src_step"]) == iteration_id
         or step_iteration.get(edge["dst_step"]) == iteration_id
     ]
+    iteration_step_set = set(iteration["steps"])
+    incoming_rels = []
+    outgoing_rels = []
+
+    for rel in rels_for_iteration:
+        src_in_iteration = rel["src_step"] in iteration_step_set
+        dst_in_iteration = rel["dst_step"] in iteration_step_set
+
+        if dst_in_iteration and not src_in_iteration:
+            incoming_rels.append(rel)
+        elif src_in_iteration and not dst_in_iteration:
+            outgoing_rels.append(rel)
+
+    _render_inspector_evidence_header(
+        title=f"Iteration {iteration_id}",
+        subtitle=f"Collapsed node {selected_id}",
+        category=iteration["category"],
+        span=_format_step_range(iteration["steps"]),
+        action_context=iteration.get("action_summary", ""),
+        files=iteration.get("files", []),
+        incoming_count=len(incoming_rels),
+        outgoing_count=len(outgoing_rels),
+        flagged_relations=iteration.get("flagged_relations", [])
+        or _flagged_relation_labels(rels_for_iteration),
+    )
 
     if rels_for_iteration:
-        iteration_step_set = set(iteration["steps"])
-        incoming_rels = []
-        outgoing_rels = []
-
-        for rel in rels_for_iteration:
-            src_in_iteration = rel["src_step"] in iteration_step_set
-            dst_in_iteration = rel["dst_step"] in iteration_step_set
-
-            if dst_in_iteration and not src_in_iteration:
-                incoming_rels.append(rel)
-            elif src_in_iteration and not dst_in_iteration:
-                outgoing_rels.append(rel)
-
         col_prev, col_next = st.columns(2)
         with col_prev:
             _render_relation_column("Previous Iteration Relations", incoming_rels)
@@ -847,9 +964,16 @@ def render_inspector(
             wrapped_log_block(entry.get("result", ""))
 
 
-def render_relationship_metrics(static_relation_records: list[dict]) -> None:
-    st.markdown("---")
-    st.header("Relationship Metrics")
+def render_relationship_metrics(
+    static_relation_records: list[dict],
+    *,
+    embedded: bool = False,
+) -> None:
+    if embedded:
+        st.caption("Relation totals for the selected run.")
+    else:
+        st.markdown("---")
+        st.header("Relationship Metrics")
 
     if not static_relation_records:
         st.write("No relation data available for this task.")

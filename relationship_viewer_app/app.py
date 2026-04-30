@@ -213,7 +213,7 @@ def main() -> None:
         )
         return
 
-    st.markdown("### Run Analysis")
+    st.markdown("### Analysis")
     saved_controls = st.session_state.get(DETAIL_CONTROLS_STATE_KEY)
     filename, controls = render_sidebar_controls(
         task_files,
@@ -229,19 +229,20 @@ def main() -> None:
         st.error(str(exc))
         st.stop()
 
-    render_patch_overview(
-        task_id=view["task_id"],
-        bug_url=view["bug_url"],
-        graph_mode=controls.graph_mode,
-        iterations_count=len(view["iterations"]),
-        steps_count=len(view["steps"]),
-        patch_status=view["patch_status"],
-        matched_patch_categories=view["matched_patch_categories"],
-    )
-    render_shared_legend()
-    render_graph_guide(controls.graph_mode)
+    with st.container(border=True):
+        render_patch_overview(
+            task_id=view["task_id"],
+            bug_url=view["bug_url"],
+            graph_mode=controls.graph_mode,
+            iterations_count=len(view["iterations"]),
+            steps_count=len(view["steps"]),
+            patch_status=view["patch_status"],
+            matched_patch_categories=view["matched_patch_categories"],
+        )
+
     if controls.graph_mode == "Iteration":
-        render_iteration_context_panel(view["iterations"])
+        with st.expander("Iteration Context", expanded=True):
+            render_iteration_context_panel(view["iterations"], show_heading=False)
 
     if not controls.inspector_separate_page and detail_page == "inspector":
         st.session_state[DETAIL_PAGE_STATE_KEY] = "graph"
@@ -254,6 +255,7 @@ def main() -> None:
             detail_page = "graph"
         detail_node_id = None
 
+    st.markdown("### Relationship Graph")
     config = Config(width="100%", height=560, directed=True, physics=False)
     with st.container(border=True):
         selected = agraph(nodes=view["nodes"], edges=view["edges"], config=config)
@@ -279,4 +281,12 @@ def main() -> None:
             step_iteration=view["step_iteration"],
         )
 
-    render_relationship_metrics(view["static_relation_records"])
+    support_tab_names = ["Guide", "Legend", "Relationship Metrics"]
+    support_tabs = st.tabs(support_tab_names)
+
+    with support_tabs[0]:
+        render_graph_guide(controls.graph_mode)
+    with support_tabs[1]:
+        render_shared_legend()
+    with support_tabs[2]:
+        render_relationship_metrics(view["static_relation_records"], embedded=True)
