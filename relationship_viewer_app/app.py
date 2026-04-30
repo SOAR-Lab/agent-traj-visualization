@@ -13,6 +13,7 @@ from relationship_viewer_app.constants import (
     RESULTS_PATH,
     ROOT,
 )
+from relationship_viewer_app.context import build_iteration_contexts
 from relationship_viewer_app.data import (
     build_overview_rows,
     bug_report_url_from_filename,
@@ -38,6 +39,7 @@ from relationship_viewer_app.ui import (
     render_app_header,
     render_graph_guide,
     render_inspector,
+    render_iteration_context_panel,
     render_overview_page,
     render_patch_overview,
     render_relationship_metrics,
@@ -84,6 +86,7 @@ def _build_view_context(filename: str, controls: SidebarControls) -> dict:
     }
     static_relation_records = collect_static_relation_records(relation_frames)
     edge_records = build_edge_records(relation_frames, max_iter, controls)
+    iterations = build_iteration_contexts(iterations, log_data, edge_records)
     nodes, edges = build_graph_elements(
         steps=steps,
         cat_map=cat_map,
@@ -211,7 +214,12 @@ def main() -> None:
         return
 
     st.markdown("### Run Analysis")
-    filename, controls = render_sidebar_controls(task_files, default_filename=selected_filename)
+    saved_controls = st.session_state.get(DETAIL_CONTROLS_STATE_KEY)
+    filename, controls = render_sidebar_controls(
+        task_files,
+        default_filename=selected_filename,
+        default_controls=saved_controls if isinstance(saved_controls, SidebarControls) else None,
+    )
     st.session_state[DETAIL_FILENAME_STATE_KEY] = filename
     st.session_state[DETAIL_CONTROLS_STATE_KEY] = controls
 
@@ -232,6 +240,8 @@ def main() -> None:
     )
     render_shared_legend()
     render_graph_guide(controls.graph_mode)
+    if controls.graph_mode == "Iteration":
+        render_iteration_context_panel(view["iterations"])
 
     if not controls.inspector_separate_page and detail_page == "inspector":
         st.session_state[DETAIL_PAGE_STATE_KEY] = "graph"

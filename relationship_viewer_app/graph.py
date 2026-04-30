@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from collections import Counter, defaultdict
-
 import pandas as pd
 from streamlit_agraph import Edge, Node
 
@@ -83,43 +81,32 @@ def step_to_iteration_map(iterations: list[dict]) -> dict[int, int]:
     return mapping
 
 
-def aggregate_iteration_edges(
+def build_iteration_action_edges(
         edge_records: list[dict],
         step_iteration: dict[int, int],
 ) -> list[dict]:
-    grouped: dict[tuple[int, int], list[dict]] = defaultdict(list)
+    iteration_edges = []
 
     for edge in edge_records:
+        if edge["family"] != "action_action":
+            continue
         src_iteration = step_iteration.get(edge["src_step"])
         dst_iteration = step_iteration.get(edge["dst_step"])
         if src_iteration is None or dst_iteration is None:
             continue
         if src_iteration == dst_iteration:
             continue
-        grouped[(src_iteration, dst_iteration)].append(edge)
-
-    aggregated = []
-    for (src_iteration, dst_iteration), members in grouped.items():
-        relation_counts = Counter(member["relation"] for member in members)
-        family_counts = Counter(member["family"] for member in members)
-        dominant_relation = max(
-            relation_counts.items(),
-            key=lambda item: (item[1], item[0]),
-        )[0]
-        aggregated.append(
+        iteration_edges.append(
             {
                 "source": f"IT_{src_iteration}",
                 "target": f"IT_{dst_iteration}",
-                "total_count": len(members),
-                "color": REL_COLOR.get(dominant_relation, DEFAULT_EDGE_COLOR),
-                "dominant_relation": dominant_relation,
-                "relation_counts": dict(relation_counts),
-                "family_counts": dict(family_counts),
-                "members": members,
+                "color": REL_COLOR.get(edge["relation"], DEFAULT_EDGE_COLOR),
+                "label": edge["relation"],
+                "record": edge,
             }
         )
 
-    return aggregated
+    return iteration_edges
 
 
 def collect_static_relation_records(relation_frames: dict[str, pd.DataFrame]) -> list[dict]:
@@ -288,10 +275,14 @@ def build_graph_elements(
         for iteration in iterations:
             iteration_id = iteration["iteration_id"]
             category = iteration["category"]
-            label = (
-                f"I{iteration_id}\n"
-                f"{shorten(category, controls.label_max_len)}"
-            )
+            label_parts = [
+                f"I{iteration_id}",
+                shorten(category, controls.label_max_len),
+            ]
+            context_label = iteration.get("context_label", "")
+            if context_label:
+                label_parts.append(shorten(context_label, controls.label_max_len + 10))
+            label = "\n".join(label_parts)
             nodes.append(
                 Node(
                     id=f"IT_{iteration_id}",
@@ -303,14 +294,18 @@ def build_graph_elements(
                 )
             )
 
-        iteration_edges = aggregate_iteration_edges(edge_records, step_iteration)
+        iteration_edges = build_iteration_action_edges(edge_records, step_iteration)
+        semantic_iteration_pairs = {
+            (edge["source"], edge["target"])
+            for edge in iteration_edges
+        }
         for edge in iteration_edges:
             edges.append(
                 Edge(
                     source=edge["source"],
                     target=edge["target"],
                     color=edge["color"],
-                    label=edge["dominant_relation"] if controls.show_edge_labels else "",
+                    label=edge["label"] if controls.show_edge_labels else "",
                     font={
                         "align": "top",
                         "vadjust": -8,
@@ -323,10 +318,14 @@ def build_graph_elements(
 
         if not controls.filters_active:
             for iteration_index in range(len(iterations) - 1):
+                source = f"IT_{iteration_index}"
+                target = f"IT_{iteration_index + 1}"
+                if (source, target) in semantic_iteration_pairs:
+                    continue
                 edges.append(
                     Edge(
-                        source=f"IT_{iteration_index}",
-                        target=f"IT_{iteration_index + 1}",
+                        source=source,
+                        target=target,
                         color="#D0D0D0",
                         label="",
                     )

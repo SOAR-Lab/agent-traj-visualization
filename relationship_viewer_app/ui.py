@@ -406,6 +406,19 @@ def format_patch_status_label(primary_status: str) -> str:
     return f"FAIL ({shown})"
 
 
+def patch_category_badge_color(category: str) -> str:
+    normalized = category.strip().lower()
+    if normalized == "resolved":
+        return "green"
+    if normalized in {"test_timeout", "test_errored", "no_apply", "no_generation"}:
+        return "red"
+    if normalized in {"applied", "generated"}:
+        return "blue"
+    if normalized in {"with_logs", "install_fail", "reset_failed"}:
+        return "orange"
+    return "gray"
+
+
 def _query_param_to_bool(value: object) -> bool:
     if isinstance(value, list):
         value = value[-1] if value else None
@@ -432,6 +445,7 @@ def set_inspector_page_preference(value: bool) -> None:
 def render_sidebar_controls(
     task_files: list[str],
     default_filename: str | None = None,
+    default_controls: SidebarControls | None = None,
 ) -> tuple[str, SidebarControls]:
     st.sidebar.header("Dataset")
     selected_index = 0
@@ -439,12 +453,23 @@ def render_sidebar_controls(
         selected_index = task_files.index(default_filename)
     filename = st.sidebar.selectbox("Task file", task_files, index=selected_index)
 
+    graph_mode_options = ["Detailed", "Iteration"]
+    default_graph_mode = (
+        default_controls.graph_mode
+        if default_controls and default_controls.graph_mode in graph_mode_options
+        else "Detailed"
+    )
     graph_mode = st.sidebar.radio(
         "Graph mode",
-        ["Detailed", "Iteration"],
+        graph_mode_options,
+        index=graph_mode_options.index(default_graph_mode),
         horizontal=True,
     )
-    inspector_page_preference = get_inspector_page_preference()
+    inspector_page_preference = (
+        default_controls.inspector_separate_page
+        if default_controls
+        else get_inspector_page_preference()
+    )
 
     inspector_separate_page = st.sidebar.toggle(
         "Open inspector on separate page",
@@ -460,37 +485,87 @@ def render_sidebar_controls(
 
     if graph_mode == "Detailed":
         st.sidebar.header("Relational Edges")
+        default_edge_families = list(EDGE_FAMILY_OPTIONS)
+        if default_controls:
+            default_edge_families = [
+                option
+                for option in default_controls.selected_edge_families
+                if option in EDGE_FAMILY_OPTIONS
+            ]
         selected_edge_families = tuple(
             st.sidebar.pills(
                 "Edge families",
                 EDGE_FAMILY_OPTIONS,
                 selection_mode="multi",
-                default=list(EDGE_FAMILY_OPTIONS),
+                default=default_edge_families,
                 label_visibility="collapsed",
             )
         )
 
+        default_structural_edges = list(STRUCTURAL_EDGE_OPTIONS)
+        if default_controls:
+            default_structural_edges = [
+                option
+                for option in default_controls.selected_structural_edges
+                if option in STRUCTURAL_EDGE_OPTIONS
+            ]
         selected_structural_edges = tuple(
             st.sidebar.pills(
                 "Structural edges",
                 STRUCTURAL_EDGE_OPTIONS,
                 selection_mode="multi",
-                default=list(STRUCTURAL_EDGE_OPTIONS),
+                default=default_structural_edges,
                 label_visibility="collapsed",
             )
         )
 
     st.sidebar.header("Filters")
-    show_only_bad = st.sidebar.checkbox("Only bad relations", False)
-    show_only_loopish = st.sidebar.checkbox("Only loop-ish relations", False)
-    show_only_no_influence = st.sidebar.checkbox("Only no-influence relations", False)
+    show_only_bad = st.sidebar.checkbox(
+        "Only bad relations",
+        default_controls.show_only_bad if default_controls else False,
+    )
+    show_only_loopish = st.sidebar.checkbox(
+        "Only loop-ish relations",
+        default_controls.show_only_loopish if default_controls else False,
+    )
+    show_only_no_influence = st.sidebar.checkbox(
+        "Only no-influence relations",
+        default_controls.show_only_no_influence if default_controls else False,
+    )
 
     st.sidebar.header("Layout")
-    step_spacing = st.sidebar.slider("Step spacing", 120, 320, 190, 10)
-    lane_gap = st.sidebar.slider("Lane gap", 90, 180, 120, 10)
-    node_size = st.sidebar.slider("Node size", 18, 46, 26, 1)
-    label_max_len = st.sidebar.slider("Max action label length", 8, 24, 14, 1)
-    show_edge_labels = st.sidebar.checkbox("Show edge labels", True)
+    step_spacing = st.sidebar.slider(
+        "Step spacing",
+        120,
+        320,
+        default_controls.step_spacing if default_controls else 190,
+        10,
+    )
+    lane_gap = st.sidebar.slider(
+        "Lane gap",
+        90,
+        180,
+        default_controls.lane_gap if default_controls else 120,
+        10,
+    )
+    node_size = st.sidebar.slider(
+        "Node size",
+        18,
+        46,
+        default_controls.node_size if default_controls else 26,
+        1,
+    )
+    label_max_len = st.sidebar.slider(
+        "Max action label length",
+        8,
+        24,
+        default_controls.label_max_len if default_controls else 14,
+        1,
+    )
+    show_edge_labels = st.sidebar.checkbox(
+        "Show edge labels",
+        default_controls.show_edge_labels if default_controls else True,
+    )
 
     controls = SidebarControls(
         graph_mode=graph_mode,
@@ -519,7 +594,6 @@ def render_patch_overview(
     patch_status: str,
     matched_patch_categories: list[str],
 ) -> None:
-    st.markdown("### Report → Patch Overview")
     col1, col2, col3 = st.columns([0.55, 0.1, 0.35])
 
     with col1:
@@ -536,7 +610,9 @@ def render_patch_overview(
 
     if matched_patch_categories:
         st.markdown("**All matched patch result categories**")
-        st.write(", ".join(matched_patch_categories))
+        with st.container(horizontal=True):
+            for category in matched_patch_categories:
+                st.badge(category, color=patch_category_badge_color(category))
 
 
 def render_graph_guide(graph_mode: str) -> None:
@@ -559,6 +635,59 @@ Iteration mode collapses consecutive detailed steps with the same action categor
 Clicking a node opens the grouped content and cross-iteration relations.
 """
     )
+
+
+def _format_step_range(steps: list[int]) -> str:
+    if not steps:
+        return ""
+    if len(steps) == 1:
+        return str(steps[0])
+    return f"{steps[0]}-{steps[-1]}"
+
+
+def _format_iteration_files(files: list[str], limit: int = 2) -> str:
+    if not files:
+        return "none"
+    shown = files[:limit]
+    label = ", ".join(shown)
+    if len(files) > limit:
+        label = f"{label} +{len(files) - limit}"
+    return label
+
+
+def _format_iteration_signals(iteration: dict) -> str:
+    flagged = iteration.get("flagged_relations", [])
+    if flagged:
+        return ", ".join(flagged)
+    relation_count = int(iteration.get("relation_count", 0))
+    return f"{relation_count} relations" if relation_count else "none"
+
+
+def _iteration_context_df(iterations: list[dict]) -> pd.DataFrame:
+    return pd.DataFrame(
+        [
+            {
+                "Iteration": f"I{iteration['iteration_id']}",
+                "Steps": _format_step_range(iteration["steps"]),
+                "Category": iteration["category"],
+                "Action context": iteration.get("action_summary") or "none",
+                "Files": _format_iteration_files(iteration.get("files", [])),
+                "Signals": _format_iteration_signals(iteration),
+            }
+            for iteration in iterations
+        ]
+    )
+
+
+def render_iteration_context_panel(iterations: list[dict]) -> None:
+    if not iterations:
+        return
+
+    st.markdown("### Iteration Context")
+    st.caption(
+        "Collapsed iteration nodes are summarized from the reconstructed log: action, files mentioned, and relation signals."
+    )
+    st.table(_iteration_context_df(iterations).style.hide(axis="index"))
 
 
 def _pretty_node_id(node_id: str) -> str:
