@@ -84,8 +84,12 @@ agent-traj-visualization/
 |  |- constants.py
 |  |- data.py
 |  |- graph.py
+|  |- inspector_ui.py
+|  |- iteration_ui.py
 |  |- models.py
+|  |- overview_ui.py
 |  |- ui.py
+|  |- ui_common.py
 |- autocoderover_csv/
 |  |- actions_categories/
 |  |- thought_action/
