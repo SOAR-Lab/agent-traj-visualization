@@ -149,9 +149,11 @@ def main() -> None:
 
     if selected_route != route:
         st.session_state[APP_ROUTE_STATE_KEY] = selected_route
-        if selected_route != "Inspector":
+        if selected_route == "Overview":
             st.session_state[DETAIL_PAGE_STATE_KEY] = "graph"
             st.session_state.pop(DETAIL_NODE_STATE_KEY, None)
+        elif selected_route == "Analysis":
+            st.session_state[DETAIL_PAGE_STATE_KEY] = "graph"
         st.rerun()
 
     if route == "Overview":
@@ -260,8 +262,11 @@ def main() -> None:
     with st.container(border=True):
         selected = agraph(nodes=view["nodes"], edges=view["edges"], config=config)
 
-    if controls.inspector_separate_page and selected:
+    selected_node_id = str(selected) if selected else detail_node_id
+    if selected:
         st.session_state[DETAIL_NODE_STATE_KEY] = str(selected)
+
+    if controls.inspector_separate_page and selected:
         st.session_state[DETAIL_PAGE_STATE_KEY] = "inspector"
         st.session_state[APP_ROUTE_STATE_KEY] = "Inspector"
         st.session_state[INSPECTOR_SCROLL_TOP_STATE_KEY] = True
@@ -271,15 +276,21 @@ def main() -> None:
         st.markdown("---")
         st.caption("Click a node to open its inspector on a separate page.")
     else:
-        render_inspector(
-            selected=selected,
+        open_full_inspector = render_inspector(
+            selected=selected_node_id,
             controls=controls,
             cat_map=view["cat_map"],
             log_data=view["log_data"],
             edge_records=view["edge_records"],
             iterations=view["iterations"],
             step_iteration=view["step_iteration"],
+            show_full_inspector_button=True,
         )
+        if open_full_inspector:
+            st.session_state[DETAIL_PAGE_STATE_KEY] = "inspector"
+            st.session_state[APP_ROUTE_STATE_KEY] = "Inspector"
+            st.session_state[INSPECTOR_SCROLL_TOP_STATE_KEY] = True
+            st.rerun()
 
     support_tab_names = ["Guide", "Legend", "Relationship Metrics"]
     support_tabs = st.tabs(support_tab_names)

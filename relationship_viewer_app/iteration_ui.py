@@ -5,8 +5,6 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
-from relationship_viewer_app.ui_common import format_step_range
-
 
 def _format_iteration_files(files: list[str], limit: int = 2) -> str:
     if not files:
@@ -30,8 +28,7 @@ def _iteration_context_df(iterations: list[dict]) -> pd.DataFrame:
     return pd.DataFrame(
         [
             {
-                "Iteration": f"I{iteration['iteration_id']}",
-                "Steps": format_step_range(iteration["steps"]),
+                "Iteration": str(iteration["iteration_id"]),
                 "Category": iteration["category"],
                 "Action context": iteration.get("action_summary") or "none",
                 "Files": _format_iteration_files(iteration.get("files", [])),
@@ -55,4 +52,8 @@ def render_iteration_context_panel(
     st.caption(
         "Collapsed iteration nodes are summarized from the reconstructed log: action, files mentioned, and relation signals."
     )
-    st.table(_iteration_context_df(iterations).style.hide(axis="index"))
+    st.dataframe(
+        _iteration_context_df(iterations),
+        hide_index=True,
+        use_container_width=True,
+    )

@@ -126,12 +126,23 @@ def _render_inspector_evidence_header(
     incoming_count: int,
     outgoing_count: int,
     flagged_relations: list[str],
-) -> None:
+    show_full_inspector_button: bool = False,
+) -> bool:
     with st.container(border=True):
         st.caption("INSPECTOR TARGET")
-        st.subheader(title)
-        if subtitle:
-            st.caption(subtitle)
+        title_col, action_col = st.columns([0.78, 0.22], vertical_alignment="center")
+        with title_col:
+            st.subheader(title)
+            if subtitle:
+                st.caption(subtitle)
+        with action_col:
+            open_full_inspector = False
+            if show_full_inspector_button:
+                open_full_inspector = st.button(
+                    "Open full inspector",
+                    type="primary",
+                    use_container_width=True,
+                )
 
         metric_cols = st.columns(4)
         metric_cols[0].metric("Category", category or "unknown")
@@ -152,6 +163,7 @@ def _render_inspector_evidence_header(
             _render_relation_badges(flagged_relations)
 
         st.caption("Raw logs below are the evidence for this selected graph target.")
+        return open_full_inspector
 
 
 def _render_step_log_evidence(
@@ -187,7 +199,8 @@ def render_inspector(
     iterations: list[dict],
     step_iteration: dict[int, int],
     standalone: bool = False,
-) -> None:
+    show_full_inspector_button: bool = False,
+) -> bool:
     if not standalone:
         st.markdown("---")
         st.header("Inspector")
@@ -195,7 +208,7 @@ def render_inspector(
     if not selected:
         if not standalone:
             st.write("Click a node to inspect it.")
-        return
+        return False
 
     selected_id = str(selected)
 
@@ -222,7 +235,7 @@ def render_inspector(
             entry.get("result", ""),
         )
 
-        _render_inspector_evidence_header(
+        open_full_inspector = _render_inspector_evidence_header(
             title=f"Step {step_index} · {kind_name}",
             subtitle=f"Detailed node {selected_id}",
             category=category,
@@ -232,7 +245,11 @@ def render_inspector(
             incoming_count=len(incoming),
             outgoing_count=len(outgoing),
             flagged_relations=_flagged_relation_labels(rels_for_node),
+            show_full_inspector_button=show_full_inspector_button,
         )
+
+        if open_full_inspector:
+            return True
 
         if rels_for_node:
             st.subheader("Relation Evidence")
@@ -255,7 +272,7 @@ def render_inspector(
         elif node_kind == "R":
             st.markdown("**Result**")
             wrapped_log_block(entry.get("result", ""))
-        return
+        return False
 
     iteration_id = int(selected_id.replace("IT_", ""))
     iteration = iterations[iteration_id]
@@ -278,7 +295,7 @@ def render_inspector(
         elif src_in_iteration and not dst_in_iteration:
             outgoing_rels.append(rel)
 
-    _render_inspector_evidence_header(
+    open_full_inspector = _render_inspector_evidence_header(
         title=f"Iteration {iteration_id}",
         subtitle=f"Collapsed node {selected_id}",
         category=iteration["category"],
@@ -289,7 +306,11 @@ def render_inspector(
         outgoing_count=len(outgoing_rels),
         flagged_relations=iteration.get("flagged_relations", [])
         or _flagged_relation_labels(rels_for_iteration),
+        show_full_inspector_button=show_full_inspector_button,
     )
+
+    if open_full_inspector:
+        return True
 
     if rels_for_iteration:
         st.subheader("Relation Evidence")
@@ -316,3 +337,5 @@ def render_inspector(
             category=cat_map.get(step_index, ""),
             expanded=len(iteration["steps"]) <= 3,
         )
+
+    return False
