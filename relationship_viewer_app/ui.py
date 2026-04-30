@@ -707,42 +707,55 @@ def _pretty_node_id(node_id: str) -> str:
     return f"{kind_name} {step}"
 
 
-def _render_relation_list(title: str, rels: list[dict]) -> None:
+def _relation_table_df(rels: list[dict], *, direction: str | None = None) -> pd.DataFrame:
+    rows = []
+    for rel in rels:
+        row = {
+            "Family": rel["family"].replace("_", " → ").title(),
+            "Source": _pretty_node_id(rel["source"]),
+            "Target": _pretty_node_id(rel["target"]),
+            "Label": rel["relation"],
+        }
+        if direction:
+            row = {"Direction": direction, **row}
+        rows.append(row)
+    return pd.DataFrame(rows)
+
+
+def _iteration_relation_table_df(rels: list[dict], *, direction: str | None = None) -> pd.DataFrame:
+    rows = []
+    for rel in rels:
+        row = {
+            "Family": rel["family"].replace("_", " → ").title(),
+            "Source step": rel["src_step"],
+            "Target step": rel["dst_step"],
+            "Label": rel["relation"],
+        }
+        if direction:
+            row = {"Direction": direction, **row}
+        rows.append(row)
+    return pd.DataFrame(rows)
+
+
+def _render_relation_table(title: str, rels: list[dict], *, direction: str | None = None) -> None:
     st.markdown(f"**{title}**")
     if not rels:
-        st.write("None")
+        st.caption("None")
         return
-
-    grouped: dict[str, list[dict]] = {}
-    for rel in rels:
-        grouped.setdefault(rel["family"], []).append(rel)
-
-    for family, family_rels in grouped.items():
-        pretty_family = family.replace("_", " → ").title()
-        st.caption(pretty_family)
-        for rel in family_rels:
-            st.markdown(
-                f"- {_pretty_node_id(rel['source'])} → {_pretty_node_id(rel['target'])} : **{rel['relation']}**"
-            )
+    st.table(_relation_table_df(rels, direction=direction).style.hide(axis="index"))
 
 
-def _render_relation_column(title: str, rels: list[dict]) -> None:
-    st.markdown(f"### {title}")
+def _render_iteration_relation_table(
+    title: str,
+    rels: list[dict],
+    *,
+    direction: str | None = None,
+) -> None:
+    st.markdown(f"**{title}**")
     if not rels:
-        st.write("None")
+        st.caption("None")
         return
-
-    grouped: dict[str, list[dict]] = {}
-    for rel in rels:
-        grouped.setdefault(rel["family"], []).append(rel)
-
-    for family, family_rels in grouped.items():
-        pretty_family = family.replace("_", " → ").title()
-        st.markdown(f"**{pretty_family}**")
-        for rel in family_rels:
-            st.markdown(
-                f"- Step {rel['src_step']} → Step {rel['dst_step']} : **{rel['relation']}**"
-            )
+    st.table(_iteration_relation_table_df(rels, direction=direction).style.hide(axis="index"))
 
 
 def _short_path(path: str) -> str:
@@ -830,6 +843,29 @@ def _render_inspector_evidence_header(
         st.caption("Raw logs below are the evidence for this selected graph target.")
 
 
+def _render_step_log_evidence(
+    *,
+    step_index: int,
+    entry: dict[str, str],
+    category: str,
+    expanded: bool,
+) -> None:
+    label = f"Step {step_index}"
+    if category:
+        label = f"{label} · {category}"
+    with st.expander(label, expanded=expanded):
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.markdown("**Thought**")
+            wrapped_log_block(entry.get("thought", ""))
+        with col2:
+            st.markdown("**Action**")
+            wrapped_log_block(entry.get("action", ""))
+        with col3:
+            st.markdown("**Result**")
+            wrapped_log_block(entry.get("result", ""))
+
+
 def render_inspector(
     *,
     selected: str | None,
@@ -888,15 +924,17 @@ def render_inspector(
         )
 
         if rels_for_node:
-            st.markdown("### Relations touching this node")
+            st.subheader("Relation Evidence")
+            st.caption("Only relations attached to the selected node are shown here.")
 
             col_in, col_out = st.columns(2)
             with col_in:
-                _render_relation_list("Incoming", incoming)
+                _render_relation_table("Incoming", incoming, direction="Incoming")
             with col_out:
-                _render_relation_list("Outgoing", outgoing)
+                _render_relation_table("Outgoing", outgoing, direction="Outgoing")
 
-        st.subheader("Selected Node Content")
+        st.subheader("Raw Log Evidence")
+        st.caption("This is the raw log section for the selected node.")
         if node_kind == "T":
             st.markdown("**Thought**")
             wrapped_log_block(entry.get("thought", ""))
@@ -943,25 +981,32 @@ def render_inspector(
     )
 
     if rels_for_iteration:
+        st.subheader("Relation Evidence")
+        st.caption("Only cross-iteration relations attached to this collapsed iteration are shown here.")
         col_prev, col_next = st.columns(2)
         with col_prev:
-            _render_relation_column("Previous Iteration Relations", incoming_rels)
+            _render_iteration_relation_table(
+                "Incoming from other iterations",
+                incoming_rels,
+                direction="Incoming",
+            )
         with col_next:
-            _render_relation_column("Next Iteration Relations", outgoing_rels)
+            _render_iteration_relation_table(
+                "Outgoing to other iterations",
+                outgoing_rels,
+                direction="Outgoing",
+            )
 
-    st.subheader("Iteration Content")
+    st.subheader("Raw Log Evidence")
+    st.caption("Each section is one detailed step contained inside this collapsed iteration.")
     for step_index in iteration["steps"]:
         entry = log_data.get(step_index, {})
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.markdown("**Thought**")
-            wrapped_log_block(entry.get("thought", ""))
-        with col2:
-            st.markdown("**Action**")
-            wrapped_log_block(entry.get("action", ""))
-        with col3:
-            st.markdown("**Result**")
-            wrapped_log_block(entry.get("result", ""))
+        _render_step_log_evidence(
+            step_index=step_index,
+            entry=entry,
+            category=cat_map.get(step_index, ""),
+            expanded=len(iteration["steps"]) <= 3,
+        )
 
 
 def render_relationship_metrics(
