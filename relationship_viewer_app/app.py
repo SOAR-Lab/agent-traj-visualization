@@ -25,6 +25,7 @@ from relationship_viewer_app.data import (
     load_relation_labels,
     load_results,
     parse_reconstructed_log,
+    pull_request_url_from_filename,
 )
 from relationship_viewer_app.graph import (
     build_edge_records,
@@ -36,6 +37,7 @@ from relationship_viewer_app.graph import (
 from relationship_viewer_app.models import SidebarControls
 from relationship_viewer_app.ui import (
     hide_sidebar_chrome,
+    OVERVIEW_SELECTED_FILE_KEY,
     render_app_header,
     render_graph_guide,
     render_inspector,
@@ -54,6 +56,15 @@ DETAIL_PAGE_STATE_KEY = "relationship_viewer_page"
 DETAIL_NODE_STATE_KEY = "relationship_viewer_selected_node"
 DETAIL_FILENAME_STATE_KEY = "relationship_viewer_filename"
 DETAIL_CONTROLS_STATE_KEY = "relationship_viewer_controls"
+PENDING_ANALYSIS_FILENAME_STATE_KEY = "relationship_viewer_pending_analysis_filename"
+
+
+def _queue_analysis_filename(filename: str, *, clear_stale_node: bool = True) -> None:
+    previous_filename = st.session_state.get(DETAIL_FILENAME_STATE_KEY)
+    st.session_state[DETAIL_FILENAME_STATE_KEY] = filename
+    st.session_state[PENDING_ANALYSIS_FILENAME_STATE_KEY] = filename
+    if clear_stale_node and filename != previous_filename:
+        st.session_state.pop(DETAIL_NODE_STATE_KEY, None)
 
 
 def _build_view_context(filename: str, controls: SidebarControls) -> dict:
@@ -78,7 +89,8 @@ def _build_view_context(filename: str, controls: SidebarControls) -> dict:
     task_id = Path(filename).stem
     matched_patch_categories = get_patch_categories(task_id, results_data)
     patch_status = derive_primary_patch_status(matched_patch_categories)
-    bug_url = bug_report_url_from_filename(filename)
+    bug_report_url = bug_report_url_from_filename(filename)
+    pull_request_url = pull_request_url_from_filename(filename)
 
     relation_frames = {
         family: load_relation_labels(family, filename)
@@ -100,7 +112,8 @@ def _build_view_context(filename: str, controls: SidebarControls) -> dict:
 
     return {
         "task_id": task_id,
-        "bug_url": bug_url,
+        "bug_report_url": bug_report_url,
+        "pull_request_url": pull_request_url,
         "steps": steps,
         "cat_map": cat_map,
         "iterations": iterations,
@@ -153,6 +166,9 @@ def main() -> None:
             st.session_state[DETAIL_PAGE_STATE_KEY] = "graph"
             st.session_state.pop(DETAIL_NODE_STATE_KEY, None)
         elif selected_route == "Analysis":
+            overview_filename = st.session_state.get(OVERVIEW_SELECTED_FILE_KEY)
+            if route == "Overview" and overview_filename in task_files:
+                _queue_analysis_filename(overview_filename)
             st.session_state[DETAIL_PAGE_STATE_KEY] = "graph"
         st.rerun()
 
@@ -165,7 +181,7 @@ def main() -> None:
 
         opened_filename = render_overview_page(overview_rows)
         if opened_filename:
-            st.session_state[DETAIL_FILENAME_STATE_KEY] = opened_filename
+            _queue_analysis_filename(opened_filename)
             st.session_state[APP_ROUTE_STATE_KEY] = "Analysis"
             st.session_state[DETAIL_PAGE_STATE_KEY] = "graph"
             st.rerun()
@@ -217,10 +233,13 @@ def main() -> None:
 
     st.markdown("### Analysis")
     saved_controls = st.session_state.get(DETAIL_CONTROLS_STATE_KEY)
+    pending_filename = st.session_state.pop(PENDING_ANALYSIS_FILENAME_STATE_KEY, None)
+    default_filename = pending_filename or selected_filename
     filename, controls = render_sidebar_controls(
         task_files,
-        default_filename=selected_filename,
+        default_filename=default_filename,
         default_controls=saved_controls if isinstance(saved_controls, SidebarControls) else None,
+        sync_default_filename=pending_filename is not None,
     )
     st.session_state[DETAIL_FILENAME_STATE_KEY] = filename
     st.session_state[DETAIL_CONTROLS_STATE_KEY] = controls
@@ -234,7 +253,8 @@ def main() -> None:
     with st.container(border=True):
         render_patch_overview(
             task_id=view["task_id"],
-            bug_url=view["bug_url"],
+            bug_report_url=view["bug_report_url"],
+            pull_request_url=view["pull_request_url"],
             graph_mode=controls.graph_mode,
             iterations_count=len(view["iterations"]),
             steps_count=len(view["steps"]),

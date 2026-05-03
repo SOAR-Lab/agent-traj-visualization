@@ -213,19 +213,21 @@ That stem is used to align:
 - the reconstructed log
 - the patch outcome entry in `results.json`
 
-### Bug Report URL Convention
+### GitHub Link Convention
 
 If the filename stem matches:
 
-- `owner__repo-issueNumber`
+- `owner__repo-pullRequestNumber`
 
-the app derives a GitHub issue URL automatically.
+the app derives a GitHub pull request URL automatically.
 
 Example:
 
 - `django__django-11099`
   becomes
-- `https://github.com/django/django/issues/11099`
+- `https://github.com/django/django/pull/11099`
+
+When GitHub exposes a linked bug report in the pull request body, the app also shows a separate bug report link. This lookup uses GitHub's public API and is cached for 24 hours. Some tasks do not have a separate issue link available, so the bug report button is shown only when it can be resolved.
 
 ## Expected Input Files
 

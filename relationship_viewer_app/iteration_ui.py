@@ -55,5 +55,5 @@ def render_iteration_context_panel(
     st.dataframe(
         _iteration_context_df(iterations),
         hide_index=True,
-        use_container_width=True,
+        width="stretch",
     )

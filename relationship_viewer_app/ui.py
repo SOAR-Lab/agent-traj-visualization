@@ -13,11 +13,12 @@ from relationship_viewer_app.constants import (
 from relationship_viewer_app.inspector_ui import render_inspector
 from relationship_viewer_app.iteration_ui import render_iteration_context_panel
 from relationship_viewer_app.models import SidebarControls
-from relationship_viewer_app.overview_ui import render_overview_page
+from relationship_viewer_app.overview_ui import OVERVIEW_SELECTED_FILE_KEY, render_overview_page
 from relationship_viewer_app.ui_common import format_task_name
 
 INSPECTOR_PAGE_TOGGLE_KEY = "relationship_viewer_inspector_separate_page"
 INSPECTOR_PAGE_TOGGLE_QUERY_KEY = "inspector_page"
+TASK_FILE_SELECT_STATE_KEY = "relationship_viewer_task_file_select"
 
 
 def render_app_header(
@@ -224,12 +225,20 @@ def render_sidebar_controls(
     task_files: list[str],
     default_filename: str | None = None,
     default_controls: SidebarControls | None = None,
+    sync_default_filename: bool = False,
 ) -> tuple[str, SidebarControls]:
     st.sidebar.header("Dataset")
-    selected_index = 0
-    if default_filename in task_files:
-        selected_index = task_files.index(default_filename)
-    filename = st.sidebar.selectbox("Task file", task_files, index=selected_index)
+    if sync_default_filename and default_filename in task_files:
+        st.session_state[TASK_FILE_SELECT_STATE_KEY] = default_filename
+    elif st.session_state.get(TASK_FILE_SELECT_STATE_KEY) not in task_files:
+        st.session_state[TASK_FILE_SELECT_STATE_KEY] = (
+            default_filename if default_filename in task_files else task_files[0]
+        )
+    filename = st.sidebar.selectbox(
+        "Task file",
+        task_files,
+        key=TASK_FILE_SELECT_STATE_KEY,
+    )
 
     graph_mode_options = ["Detailed", "Iteration"]
     default_graph_mode = (
@@ -365,7 +374,8 @@ def render_sidebar_controls(
 def render_patch_overview(
     *,
     task_id: str,
-    bug_url: str | None,
+    bug_report_url: str | None,
+    pull_request_url: str | None,
     graph_mode: str,
     iterations_count: int,
     steps_count: int,
@@ -379,8 +389,10 @@ def render_patch_overview(
         st.subheader(format_task_name(task_id))
         st.caption(task_id)
     with action_col:
-        if bug_url:
-            st.link_button("Open bug report", bug_url, use_container_width=True)
+        if bug_report_url:
+            st.link_button("Open bug report", bug_report_url, width="stretch")
+        if pull_request_url:
+            st.link_button("Open solving pull request", pull_request_url, width="stretch")
 
     count_label = "Iterations" if graph_mode == "Iteration" else "Steps"
     count_value = iterations_count if graph_mode == "Iteration" else steps_count

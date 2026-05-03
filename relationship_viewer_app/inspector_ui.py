@@ -53,7 +53,7 @@ def _render_relation_table(title: str, rels: list[dict]) -> None:
     st.dataframe(
         _relation_table_df(rels),
         hide_index=True,
-        use_container_width=True,
+        width="stretch",
     )
 
 
@@ -65,7 +65,7 @@ def _render_iteration_relation_table(title: str, rels: list[dict]) -> None:
     st.dataframe(
         _iteration_relation_table_df(rels),
         hide_index=True,
-        use_container_width=True,
+        width="stretch",
     )
 
 
@@ -127,6 +127,7 @@ def _render_inspector_evidence_header(
     outgoing_count: int,
     flagged_relations: list[str],
     show_full_inspector_button: bool = False,
+    show_raw_log_note: bool = True,
 ) -> bool:
     with st.container(border=True):
         st.caption("INSPECTOR TARGET")
@@ -141,7 +142,7 @@ def _render_inspector_evidence_header(
                 open_full_inspector = st.button(
                     "Open full inspector",
                     type="primary",
-                    use_container_width=True,
+                    width="stretch",
                 )
 
         metric_cols = st.columns(4)
@@ -162,7 +163,10 @@ def _render_inspector_evidence_header(
             st.markdown("**Flagged relations**")
             _render_relation_badges(flagged_relations)
 
-        st.caption("Raw logs below are the evidence for this selected graph target.")
+        if show_raw_log_note:
+            st.caption("Raw logs below are the evidence for this selected graph target.")
+        elif show_full_inspector_button:
+            st.caption("Full inspector includes raw logs and complete relation tables.")
         return open_full_inspector
 
 
@@ -246,7 +250,13 @@ def render_inspector(
             outgoing_count=len(outgoing),
             flagged_relations=_flagged_relation_labels(rels_for_node),
             show_full_inspector_button=show_full_inspector_button,
+            show_raw_log_note=standalone,
         )
+
+        if not standalone:
+            if open_full_inspector:
+                return True
+            return False
 
         if open_full_inspector:
             return True
@@ -307,7 +317,13 @@ def render_inspector(
         flagged_relations=iteration.get("flagged_relations", [])
         or _flagged_relation_labels(rels_for_iteration),
         show_full_inspector_button=show_full_inspector_button,
+        show_raw_log_note=standalone,
     )
+
+    if not standalone:
+        if open_full_inspector:
+            return True
+        return False
 
     if open_full_inspector:
         return True

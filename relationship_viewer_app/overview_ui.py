@@ -5,9 +5,11 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
+from relationship_viewer_app.data import bug_report_url_from_filename
 from relationship_viewer_app.ui_common import format_task_name
 
 OVERVIEW_SELECTED_FILE_KEY = "relationship_viewer_overview_selected_file"
+OVERVIEW_TABLE_HEIGHT = 930
 
 
 def _compact_categories(categories: list[str], limit: int = 5) -> str:
@@ -36,10 +38,7 @@ def _compact_categories(categories: list[str], limit: int = 5) -> str:
 
 
 def _format_flags(row: dict, limit: int = 4) -> str:
-    flags = []
-    if row.get("first_flagged_iteration") is not None:
-        flags.append(f"first flagged: i{row['first_flagged_iteration']}")
-    flags.extend(str(tag).lower() for tag in row.get("flagged_relations", []))
+    flags = [str(tag).lower() for tag in row.get("flagged_relations", [])]
     return ", ".join(flags[:limit]) if flags else "none"
 
 
@@ -53,7 +52,7 @@ def _relation_counts_df(relation_counts: dict[str, int], limit: int = 8) -> pd.D
         reverse=True,
     )[:limit]
     return pd.DataFrame(
-        [{"Relation": relation, "Count": count} for relation, count in sorted_counts]
+        [{"Relation": relation, "Count": str(count)} for relation, count in sorted_counts]
     )
 
 
@@ -63,10 +62,10 @@ def _overview_table_df(rows: list[dict]) -> pd.DataFrame:
             {
                 "Agent": row["agent_name"],
                 "Outcome": row["outcome"],
-                "Iterations": row["iteration_count"],
-                "Task": format_task_name(row["task_id"]),
+                "Iterations": str(row["iteration_count"]),
+                "Issue number": format_task_name(row["task_id"]),
                 "Behavior": _compact_categories(row.get("categories", [])),
-                "Tags": _format_flags(row),
+                "Relationship anomalies": _format_flags(row),
             }
             for row in rows
         ]
@@ -109,7 +108,7 @@ def render_overview_page(rows: list[dict]) -> str | None:
         }
     )
 
-    filter_col, table_col, summary_col = st.columns([0.18, 0.56, 0.26], gap="large")
+    filter_col, table_col, summary_col = st.columns([0.12, 0.60, 0.28], gap="medium")
 
     with filter_col:
         with st.container(border=True):
@@ -149,21 +148,20 @@ def render_overview_page(rows: list[dict]) -> str | None:
         st.session_state[OVERVIEW_SELECTED_FILE_KEY] = selected_filename
 
     with table_col:
-        st.caption("RUN INDEX")
         if not filtered_rows:
             st.warning("No runs match the current filters.")
         else:
             table_state = st.dataframe(
                 _overview_table_df(filtered_rows),
                 hide_index=True,
-                use_container_width=True,
-                height=min(560, 38 * len(filtered_rows) + 38),
+                width="stretch",
+                height=OVERVIEW_TABLE_HEIGHT,
                 on_select="rerun",
                 selection_mode="single-row",
                 key="overview_run_table",
                 column_config={
-                    "Iterations": st.column_config.NumberColumn(
-                        "IT",
+                    "Iterations": st.column_config.TextColumn(
+                        "Iterations",
                         help="Number of detailed iterations in the run.",
                     ),
                     "Behavior": st.column_config.TextColumn(
@@ -184,6 +182,7 @@ def render_overview_page(rows: list[dict]) -> str | None:
 
     with summary_col:
         with st.container(border=True):
+            bug_report_url = bug_report_url_from_filename(selected_row["filename"])
             st.caption("RUN SUMMARY")
             st.subheader(format_task_name(selected_row["task_id"]))
             st.caption(selected_row["task_id"])
@@ -202,13 +201,23 @@ def render_overview_page(rows: list[dict]) -> str | None:
                 st.dataframe(
                     relation_counts_df,
                     hide_index=True,
-                    use_container_width=True,
+                    width="stretch",
                 )
-            st.markdown("**Flags**")
+            st.markdown("**Relationship anomalies**")
             st.write(_format_flags(selected_row, limit=6))
-            if selected_row.get("bug_url"):
-                st.link_button("Open bug report", selected_row["bug_url"], use_container_width=True)
-            if st.button("Open analysis", type="primary", use_container_width=True):
+            if bug_report_url:
+                st.link_button(
+                    "Open bug report",
+                    bug_report_url,
+                    width="stretch",
+                )
+            if selected_row.get("pull_request_url"):
+                st.link_button(
+                    "Open solving pull request",
+                    selected_row["pull_request_url"],
+                    width="stretch",
+                )
+            if st.button("Open analysis", type="primary", width="stretch"):
                 return selected_row["filename"]
 
     return None

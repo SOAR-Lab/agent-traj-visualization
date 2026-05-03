@@ -6,6 +6,8 @@ import json
 import re
 from collections import Counter
 from pathlib import Path
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 import pandas as pd
 import streamlit as st
@@ -162,6 +164,77 @@ def get_patch_categories(task_id: str, results: dict) -> list[str]:
     return matched
 
 
+def task_reference_from_filename(filename: str) -> tuple[str, str, str] | None:
+    stem = Path(filename).stem
+    match = re.match(r"(.+)__(.+)-(\d+)$", stem)
+    if not match:
+        return None
+    return match.groups()
+
+
+def pull_request_url_from_filename(filename: str) -> str | None:
+    reference = task_reference_from_filename(filename)
+    if not reference:
+        return None
+    owner, repo, pull_number = reference
+    return f"https://github.com/{owner}/{repo}/pull/{pull_number}"
+
+
+def _extract_linked_issue_number(
+    text: str,
+    owner: str,
+    repo: str,
+    pull_number: str,
+) -> str | None:
+    if not text:
+        return None
+
+    keyword = r"(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)"
+    owner_repo = rf"(?:{re.escape(owner)}/{re.escape(repo)})?"
+    patterns = [
+        rf"\b{keyword}\s+https://github\.com/{re.escape(owner)}/{re.escape(repo)}/issues/(\d+)",
+        rf"\b{keyword}\s+{owner_repo}#(\d+)",
+    ]
+
+    for pattern in patterns:
+        for match in re.finditer(pattern, text, flags=re.IGNORECASE):
+            issue_number = match.group(1)
+            if issue_number != pull_number:
+                return issue_number
+    return None
+
+
+@st.cache_data(ttl=60 * 60 * 24, show_spinner=False)
+def bug_report_url_from_filename(filename: str) -> str | None:
+    reference = task_reference_from_filename(filename)
+    if not reference:
+        return None
+
+    owner, repo, pull_number = reference
+    request = Request(
+        f"https://api.github.com/repos/{owner}/{repo}/pulls/{pull_number}",
+        headers={
+            "Accept": "application/vnd.github+json",
+            "User-Agent": "agent-traj-visualization",
+        },
+    )
+    try:
+        with urlopen(request, timeout=6) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except (HTTPError, URLError, TimeoutError, json.JSONDecodeError):
+        return None
+
+    issue_number = _extract_linked_issue_number(
+        payload.get("body", ""),
+        owner,
+        repo,
+        pull_number,
+    )
+    if not issue_number:
+        return None
+    return f"https://github.com/{owner}/{repo}/issues/{issue_number}"
+
+
 def derive_primary_patch_status(matched_categories: list[str]) -> str:
     priority = [
         ("resolved", "RESOLVED"),
@@ -181,15 +254,6 @@ def derive_primary_patch_status(matched_categories: list[str]) -> str:
             return label
 
     return "UNKNOWN"
-
-
-def bug_report_url_from_filename(filename: str) -> str | None:
-    stem = Path(filename).stem
-    match = re.match(r"(.+)__(.+)-(\d+)$", stem)
-    if not match:
-        return None
-    owner, repo, issue_num = match.groups()
-    return f"https://github.com/{owner}/{repo}/issues/{issue_num}"
 
 
 @st.cache_data
@@ -245,7 +309,7 @@ def build_overview_rows(task_files: tuple[str, ...], results_path: Path) -> list
                 "relation_counts": dict(relation_counts),
                 "flagged_relations": flagged_relations,
                 "first_flagged_iteration": first_flagged_iteration,
-                "bug_url": bug_report_url_from_filename(filename),
+                "pull_request_url": pull_request_url_from_filename(filename),
             }
         )
 
