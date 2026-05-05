@@ -43,6 +43,9 @@ pip-wheel-metadata/
 .streamlit/credentials.toml
 .streamlit/.cache/
 
+# Local raw trajectory data
+sweagent_claude4_trajs/
+
 # IDE/editor files
 .idea/
 .vscode/

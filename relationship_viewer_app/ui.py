@@ -12,6 +12,7 @@ from relationship_viewer_app.constants import (
 )
 from relationship_viewer_app.inspector_ui import render_inspector
 from relationship_viewer_app.iteration_ui import render_iteration_context_panel
+from relationship_viewer_app.labeling_ui import render_labeling_page
 from relationship_viewer_app.models import SidebarControls
 from relationship_viewer_app.overview_ui import OVERVIEW_SELECTED_FILE_KEY, render_overview_page
 from relationship_viewer_app.ui_common import format_task_name
@@ -44,6 +45,12 @@ def render_app_header(
             key="nav_analysis",
         ):
             return "Analysis"
+        if st.button(
+            "Labeling",
+            type="primary" if current_route == "Labeling" else "secondary",
+            key="nav_labeling",
+        ):
+            return "Labeling"
 
     st.divider()
     return current_route

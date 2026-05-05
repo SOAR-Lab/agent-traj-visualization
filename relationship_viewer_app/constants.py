@@ -38,6 +38,52 @@ REL_COLOR = {
     "Divergence": "#F58518",
 }
 
+RELATION_LABEL_OPTIONS = (
+    "No influence",
+    "Alignment",
+    "Follow-up",
+    "Refinement",
+    "Informative",
+    "Triggering",
+    "Redundancy",
+    "Repetition",
+    "Misalignment",
+    "Misinterpretation",
+    "Contradiction",
+    "Divergence",
+)
+
+RELATION_LABEL_OPTIONS_BY_FAMILY = {
+    "thought_action": (
+        "Alignment",
+        "Misalignment",
+    ),
+    "thought_thought": (
+        "Follow-up",
+        "Refinement",
+        "Redundancy",
+        "Divergence",
+        "Contradiction",
+    ),
+    "action_action": (
+        "Follow-up",
+        "Refinement",
+        "Repetition",
+        "Divergence",
+    ),
+    "result_thought": (
+        "Follow-up",
+        "Refinement",
+        "No influence",
+        "Misinterpretation",
+    ),
+    "result_action": (
+        "Informative",
+        "Triggering",
+        "No influence",
+    ),
+}
+
 DEFAULT_EDGE_COLOR = "#BBBBBB"
 
 CATEGORY_COLOR = {

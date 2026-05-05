@@ -115,10 +115,13 @@ def collect_static_relation_records(relation_frames: dict[str, pd.DataFrame]) ->
         if frame.empty:
             continue
         for _, row in frame.iterrows():
+            relation = normalize_rel(row[REL_LABEL_COL])
+            if not relation:
+                continue
             records.append(
                 {
                     "family": family,
-                    "relation": normalize_rel(row[REL_LABEL_COL]),
+                    "relation": relation,
                 }
             )
     return records
@@ -154,6 +157,8 @@ def build_edge_records(
                 continue
 
             relation = normalize_rel(row[REL_LABEL_COL])
+            if not relation:
+                continue
             if not relation_passes(relation, controls):
                 continue
 

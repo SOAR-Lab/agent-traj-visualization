@@ -193,6 +193,20 @@ After launch, the app opens a browser page where you can:
 4. adjust graph layout settings
 5. click nodes to inspect the underlying content
 
+## Relationship Labeling
+
+The `Labeling` page provides a staged annotation workflow for raw agent traces. It accepts uploaded `.traj`, `.json`, `.jsonl`, `.log`, and `.txt` files, or a `.zip` containing supported trace files. If a local `sweagent_claude4_trajs/` folder exists, the page can also load that folder directly.
+
+The labeler parses each trajectory into Thought / Action / Result steps and generates the same relationship families used by the graph viewer:
+
+- `Thought -> Action`
+- `Thought -> Thought`
+- `Action -> Action`
+- `Result -> Thought`
+- `Result -> Action`
+
+After ingest, the page shows annotation progress, a completion summary, and a single-run workspace. The workspace label table lets users edit the relationship label column and export either a JSON evidence record or a zip of viewer-compatible relation CSVs. Label options are constrained by relationship family; unedited rows remain `Unlabeled` and export as blank relation labels.
+
 ## Data Model And Naming Convention
 
 The app assumes that a single task is identified by a shared filename stem.

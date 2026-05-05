@@ -80,7 +80,7 @@ def load_relation_labels(folder: str, filename: str) -> pd.DataFrame:
             f"{path} must have exactly one column named '{REL_LABEL_COL}'. Found: {list(df.columns)}"
         )
 
-    df[REL_LABEL_COL] = df[REL_LABEL_COL].astype(str)
+    df[REL_LABEL_COL] = df[REL_LABEL_COL].fillna("").astype(str)
     return df
 
 

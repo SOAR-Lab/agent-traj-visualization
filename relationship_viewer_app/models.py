@@ -49,3 +49,35 @@ class SidebarControls:
     @property
     def show_structural_ar(self) -> bool:
         return "Action → Result (Structural)" in self.selected_structural_edges
+
+
+@dataclass(frozen=True)
+class TrajectoryStep:
+    step_index: int
+    thought: str
+    action: str
+    result: str
+
+
+@dataclass(frozen=True)
+class ParsedTrajectory:
+    task_id: str
+    source_name: str
+    steps: tuple[TrajectoryStep, ...]
+
+    @property
+    def key(self) -> str:
+        return self.source_name or self.task_id
+
+
+@dataclass(frozen=True)
+class RelationCandidate:
+    key: str
+    task_id: str
+    family: str
+    source_node: str
+    target_node: str
+    source_step: int
+    target_step: int
+    source_text: str
+    target_text: str

@@ -42,6 +42,7 @@ from relationship_viewer_app.ui import (
     render_graph_guide,
     render_inspector,
     render_iteration_context_panel,
+    render_labeling_page,
     render_overview_page,
     render_patch_overview,
     render_relationship_metrics,
@@ -132,15 +133,6 @@ def _build_view_context(filename: str, controls: SidebarControls) -> dict:
 def main() -> None:
     st.set_page_config(page_title="Relationship Viewer", layout="wide")
 
-    if not ROOT.exists():
-        st.error(f"Folder not found: {ROOT.resolve()}")
-        st.stop()
-
-    task_files = list_task_files()
-    if not task_files:
-        st.error(f"No files found in {ROOT / ACTIONS_CATEGORIES_FOLDER}")
-        st.stop()
-
     detail_page = st.session_state.get(DETAIL_PAGE_STATE_KEY, "graph")
     detail_node_id = st.session_state.get(DETAIL_NODE_STATE_KEY)
     if detail_page == "inspector":
@@ -149,6 +141,8 @@ def main() -> None:
     route = st.session_state.get(APP_ROUTE_STATE_KEY, "Overview")
     selected_filename = st.session_state.get(DETAIL_FILENAME_STATE_KEY)
     selected_task_id = Path(selected_filename).stem if selected_filename else None
+
+    task_files = list_task_files() if ROOT.exists() else []
 
     if route == "Inspector":
         hide_sidebar_chrome()
@@ -170,7 +164,21 @@ def main() -> None:
             if route == "Overview" and overview_filename in task_files:
                 _queue_analysis_filename(overview_filename)
             st.session_state[DETAIL_PAGE_STATE_KEY] = "graph"
+        elif selected_route == "Labeling":
+            st.session_state[DETAIL_PAGE_STATE_KEY] = "graph"
         st.rerun()
+
+    if route == "Labeling":
+        render_labeling_page()
+        return
+
+    if not ROOT.exists():
+        st.error(f"Folder not found: {ROOT.resolve()}")
+        st.stop()
+
+    if not task_files:
+        st.error(f"No files found in {ROOT / ACTIONS_CATEGORIES_FOLDER}")
+        st.stop()
 
     if route == "Overview":
         try:
