@@ -7,6 +7,10 @@ import time
 import pandas as pd
 import streamlit as st
 
+from relationship_viewer_app.constants import (
+    LABELER_STAGE_COMPLETE,
+    LABELER_STAGE_INGEST,
+)
 from relationship_viewer_app.labeling_components import (
     render_labeling_header,
     render_parser_warnings,
@@ -86,13 +90,17 @@ def render_ingest_screen() -> None:
 def render_annotating_screen() -> None:
     trajectory = selected_trajectory()
     if trajectory is None:
-        st.session_state[LABELER_STAGE_STATE_KEY] = "ingest"
+        st.session_state[LABELER_STAGE_STATE_KEY] = LABELER_STAGE_INGEST
         st.rerun()
 
     meta = active_source_meta()
     size_label = format_size(meta.get("bytes") if isinstance(meta.get("bytes"), int) else None)
     uploaded_meta = f"{size_label} - uploaded just now" if size_label else "uploaded just now"
-    render_labeling_header("ANNOTATING", str(meta.get("name") or trajectory.source_name), uploaded_meta)
+    render_labeling_header(
+        "ANNOTATING",
+        str(meta.get("name") or trajectory.source_name),
+        uploaded_meta,
+    )
 
     stats = annotation_stats(trajectory, labels())
     progress = 0.68
@@ -103,7 +111,10 @@ def render_annotating_screen() -> None:
             {
                 "Task": "Parsing raw trace",
                 "Status": "done",
-                "Detail": f"Found {len(trajectory.steps)} iterations, {len(trajectory.steps) * 3} turns",
+                "Detail": (
+                    f"Found {len(trajectory.steps)} iterations, "
+                    f"{len(trajectory.steps) * 3} turns"
+                ),
             },
             {
                 "Task": "Classifying node types",
@@ -125,11 +136,11 @@ def render_annotating_screen() -> None:
     with st.container(border=True):
         st.dataframe(progress_rows, hide_index=True, width="stretch")
         if st.button("Cancel"):
-            st.session_state[LABELER_STAGE_STATE_KEY] = "ingest"
+            st.session_state[LABELER_STAGE_STATE_KEY] = LABELER_STAGE_INGEST
             st.rerun()
 
     if not st.session_state.get(LABELER_PROGRESS_ADVANCED_STATE_KEY, False):
         st.session_state[LABELER_PROGRESS_ADVANCED_STATE_KEY] = True
         time.sleep(0.8)
-        st.session_state[LABELER_STAGE_STATE_KEY] = "complete"
+        st.session_state[LABELER_STAGE_STATE_KEY] = LABELER_STAGE_COMPLETE
         st.rerun()

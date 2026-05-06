@@ -7,7 +7,13 @@ from collections import defaultdict
 import pandas as pd
 import streamlit as st
 
-from relationship_viewer_app.constants import BAD_RELS, LOOPISH_RELS, NOINF_RELS
+from relationship_viewer_app.constants import (
+    BAD_RELS,
+    LABELER_STAGE_INGEST,
+    LABELER_STAGE_WORKSPACE,
+    LOOPISH_RELS,
+    NOINF_RELS,
+)
 from relationship_viewer_app.labeling_components import render_labeling_header
 from relationship_viewer_app.labeling_state import (
     LABELER_STAGE_STATE_KEY,
@@ -100,7 +106,7 @@ def _behavior_rows(
 def render_summary_screen() -> None:
     trajectory = selected_trajectory()
     if trajectory is None:
-        st.session_state[LABELER_STAGE_STATE_KEY] = "ingest"
+        st.session_state[LABELER_STAGE_STATE_KEY] = LABELER_STAGE_INGEST
         st.rerun()
 
     current_labels = labels()
@@ -161,7 +167,7 @@ def render_summary_screen() -> None:
         st.info("Every annotation is editable in the single-run workspace.")
 
         if st.button("Open in single-run workspace", type="primary", width="stretch"):
-            st.session_state[LABELER_STAGE_STATE_KEY] = "workspace"
+            st.session_state[LABELER_STAGE_STATE_KEY] = LABELER_STAGE_WORKSPACE
             st.session_state[LABELER_WORKSPACE_TOAST_STATE_KEY] = True
             st.rerun()
         if st.button("Re-annotate with different settings", width="stretch"):

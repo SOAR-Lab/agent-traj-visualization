@@ -5,7 +5,11 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
-from relationship_viewer_app.constants import REL_SPECS
+from relationship_viewer_app.constants import (
+    LABELER_STAGE_COMPLETE,
+    LABELER_STAGE_INGEST,
+    REL_SPECS,
+)
 from relationship_viewer_app.labeling_components import (
     render_labeling_header,
     render_parser_warnings,
@@ -36,7 +40,10 @@ from relationship_viewer_app.ui_common import wrapped_log_block
 LABELER_EDITOR_VERSION = "v4"
 
 
-def _candidate_rows(candidates: list[RelationCandidate], current_labels: dict[str, str]) -> pd.DataFrame:
+def _candidate_rows(
+    candidates: list[RelationCandidate],
+    current_labels: dict[str, str],
+) -> pd.DataFrame:
     return pd.DataFrame(
         [
             {
@@ -122,7 +129,7 @@ def _trajectory_select(trajectories: list[ParsedTrajectory]) -> ParsedTrajectory
 def render_workspace_page() -> None:
     trajectories = loaded_trajectories()
     if not trajectories:
-        st.session_state[LABELER_STAGE_STATE_KEY] = "ingest"
+        st.session_state[LABELER_STAGE_STATE_KEY] = LABELER_STAGE_INGEST
         st.rerun()
 
     meta = active_source_meta()
@@ -140,7 +147,7 @@ def render_workspace_page() -> None:
     _, action_col = st.columns([0.72, 0.28], vertical_alignment="bottom")
     with action_col:
         if st.button("Back to annotation summary", width="stretch"):
-            st.session_state[LABELER_STAGE_STATE_KEY] = "complete"
+            st.session_state[LABELER_STAGE_STATE_KEY] = LABELER_STAGE_COMPLETE
             st.rerun()
 
     render_parser_warnings(st.session_state.get(LABELER_ERRORS_STATE_KEY, []))

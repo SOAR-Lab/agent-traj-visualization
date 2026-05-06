@@ -7,7 +7,11 @@ from dataclasses import dataclass
 
 import streamlit as st
 
-from relationship_viewer_app.constants import BAD_RELS
+from relationship_viewer_app.constants import (
+    BAD_RELS,
+    LABELER_STAGE_ANNOTATING,
+    LABELER_STAGE_INGEST,
+)
 from relationship_viewer_app.models import ParsedTrajectory, RelationCandidate
 from relationship_viewer_app.swebench import (
     LOCAL_SWEAGENT_TRAJECTORY_DIR,
@@ -100,7 +104,7 @@ def reset_annotation_flow() -> None:
         LABELER_WORKSPACE_TOAST_STATE_KEY,
     ):
         st.session_state.pop(key, None)
-    st.session_state[LABELER_STAGE_STATE_KEY] = "ingest"
+    st.session_state[LABELER_STAGE_STATE_KEY] = LABELER_STAGE_INGEST
 
 
 def start_annotation_from_sources(sources: list[tuple[str, bytes]]) -> bool:
@@ -121,14 +125,14 @@ def start_annotation_from_sources(sources: list[tuple[str, bytes]]) -> bool:
         if not errors:
             errors = ["No supported trace files were found."]
         set_loaded_trajectories([], errors, reset_labels=True)
-        st.session_state[LABELER_STAGE_STATE_KEY] = "ingest"
+        st.session_state[LABELER_STAGE_STATE_KEY] = LABELER_STAGE_INGEST
         return False
 
     set_loaded_trajectories(trajectories, errors, reset_labels=True)
     st.session_state[LABELER_SOURCE_META_STATE_KEY] = source_meta_from_sources(sources)
     st.session_state[LABELER_SELECTED_TRAJECTORY_STATE_KEY] = trajectories[0].key
     st.session_state[LABELER_PROGRESS_ADVANCED_STATE_KEY] = False
-    st.session_state[LABELER_STAGE_STATE_KEY] = "annotating"
+    st.session_state[LABELER_STAGE_STATE_KEY] = LABELER_STAGE_ANNOTATING
     return True
 
 
@@ -138,7 +142,7 @@ def start_annotation_from_local_folder() -> bool:
         if not errors:
             errors = [f"No .traj files found in {LOCAL_SWEAGENT_TRAJECTORY_DIR}."]
         set_loaded_trajectories([], errors, reset_labels=True)
-        st.session_state[LABELER_STAGE_STATE_KEY] = "ingest"
+        st.session_state[LABELER_STAGE_STATE_KEY] = LABELER_STAGE_INGEST
         return False
 
     total_bytes = sum(
@@ -153,7 +157,7 @@ def start_annotation_from_local_folder() -> bool:
     }
     st.session_state[LABELER_SELECTED_TRAJECTORY_STATE_KEY] = trajectories[0].key
     st.session_state[LABELER_PROGRESS_ADVANCED_STATE_KEY] = False
-    st.session_state[LABELER_STAGE_STATE_KEY] = "annotating"
+    st.session_state[LABELER_STAGE_STATE_KEY] = LABELER_STAGE_ANNOTATING
     return True
 
 
@@ -169,7 +173,10 @@ def selected_trajectory() -> ParsedTrajectory | None:
     return trajectories[0]
 
 
-def annotation_stats(trajectory: ParsedTrajectory, current_labels: dict[str, str]) -> AnnotationStats:
+def annotation_stats(
+    trajectory: ParsedTrajectory,
+    current_labels: dict[str, str],
+) -> AnnotationStats:
     candidates = build_relation_candidates(trajectory)
     labeled_pairs = [
         (candidate, label_for_candidate(candidate, current_labels))
