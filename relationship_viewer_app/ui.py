@@ -30,7 +30,7 @@ def render_app_header(
     *,
     current_route: str,
     selected_task_id: str | None = None,
-) -> str:
+) -> tuple[str, bool]:
     with st.container(horizontal=True, vertical_alignment="center"):
         with st.container():
             st.title("Inspector" if current_route == ROUTE_INSPECTOR else "Relationship Viewer")
@@ -38,26 +38,26 @@ def render_app_header(
                 st.caption(selected_task_id)
         st.space("stretch")
         if st.button(
+            ROUTE_LABELING,
+            type="primary" if current_route == ROUTE_LABELING else "secondary",
+            key="nav_labeling",
+        ):
+            return ROUTE_LABELING, True
+        if st.button(
             ROUTE_OVERVIEW,
             type="primary" if current_route == ROUTE_OVERVIEW else "secondary",
             key="nav_overview",
         ):
-            return ROUTE_OVERVIEW
+            return ROUTE_OVERVIEW, True
         if st.button(
             ROUTE_ANALYSIS,
             type="primary" if current_route == ROUTE_ANALYSIS else "secondary",
             key="nav_analysis",
         ):
-            return ROUTE_ANALYSIS
-        if st.button(
-            ROUTE_LABELING,
-            type="primary" if current_route == ROUTE_LABELING else "secondary",
-            key="nav_labeling",
-        ):
-            return ROUTE_LABELING
+            return ROUTE_ANALYSIS, True
 
     st.divider()
-    return current_route
+    return current_route, False
 
 
 def action_category_legend(title: str = "#### Action Categories") -> None:

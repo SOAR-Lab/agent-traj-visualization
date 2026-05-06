@@ -156,6 +156,15 @@ def _apply_route_change(
     st.rerun()
 
 
+def _apply_current_route_click(route: str) -> None:
+    if route in {ROUTE_OVERVIEW, ROUTE_ANALYSIS}:
+        st.session_state[DETAIL_PAGE_STATE_KEY] = DETAIL_PAGE_GRAPH
+        st.session_state.pop(DETAIL_NODE_STATE_KEY, None)
+    elif route == ROUTE_LABELING:
+        st.session_state[DETAIL_PAGE_STATE_KEY] = DETAIL_PAGE_GRAPH
+    st.rerun()
+
+
 def _ensure_dataset_available(task_files: list[str]) -> None:
     if not ROOT.exists():
         st.error(f"Folder not found: {ROOT.resolve()}")
@@ -346,7 +355,7 @@ def main() -> None:
     if detail_page == DETAIL_PAGE_INSPECTOR:
         st.session_state[APP_ROUTE_STATE_KEY] = ROUTE_INSPECTOR
 
-    route = st.session_state.get(APP_ROUTE_STATE_KEY, ROUTE_OVERVIEW)
+    route = st.session_state.get(APP_ROUTE_STATE_KEY, ROUTE_LABELING)
     selected_filename = st.session_state.get(DETAIL_FILENAME_STATE_KEY)
     selected_task_id = Path(selected_filename).stem if selected_filename else None
     task_files = list_task_files() if ROOT.exists() else []
@@ -354,7 +363,7 @@ def main() -> None:
     if route == ROUTE_INSPECTOR:
         hide_sidebar_chrome()
 
-    selected_route = render_app_header(
+    selected_route, route_button_clicked = render_app_header(
         current_route=route,
         selected_task_id=selected_task_id,
     )
@@ -370,6 +379,8 @@ def main() -> None:
             previous_route=route,
             task_files=task_files,
         )
+    if route_button_clicked:
+        _apply_current_route_click(route)
 
     if route == ROUTE_LABELING:
         render_labeling_page()
