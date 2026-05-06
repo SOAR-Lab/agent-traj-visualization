@@ -18,6 +18,13 @@ from relationship_viewer_app.constants import (
     RELATION_LABEL_OPTIONS_BY_FAMILY,
 )
 from relationship_viewer_app.models import ParsedTrajectory, RelationCandidate, TrajectoryStep
+from relationship_viewer_app.node_ids import (
+    ACTION_NODE_KIND,
+    RESULT_NODE_KIND,
+    THOUGHT_NODE_KIND,
+    node_kind_name,
+    step_node_id,
+)
 
 UNLABELED_RELATION_LABEL = "Unlabeled"
 LOCAL_SWEAGENT_TRAJECTORY_DIR = PROJECT_ROOT / "sweagent_claude4_trajs"
@@ -308,7 +315,10 @@ def parse_trajectory_sources(
     return list(deduped.values()), errors
 
 
-def parse_trajectory_zip(contents: bytes, source_name: str) -> tuple[list[ParsedTrajectory], list[str]]:
+def parse_trajectory_zip(
+    contents: bytes,
+    source_name: str,
+) -> tuple[list[ParsedTrajectory], list[str]]:
     trajectories: list[ParsedTrajectory] = []
     errors: list[str] = []
 
@@ -350,11 +360,11 @@ def parse_trajectory_directory(root: Path) -> tuple[list[ParsedTrajectory], list
 
 
 def node_text(step: TrajectoryStep, node_kind: str) -> str:
-    if node_kind == "T":
+    if node_kind == THOUGHT_NODE_KIND:
         return step.thought
-    if node_kind == "A":
+    if node_kind == ACTION_NODE_KIND:
         return step.action
-    if node_kind == "R":
+    if node_kind == RESULT_NODE_KIND:
         return step.result
     return ""
 
@@ -371,8 +381,8 @@ def build_relation_candidates(trajectory: ParsedTrajectory) -> list[RelationCand
             if target is None:
                 continue
 
-            source_node = f"{spec['src']}_{source_step}"
-            target_node = f"{spec['dst']}_{target_step}"
+            source_node = step_node_id(spec["src"], source_step)
+            target_node = step_node_id(spec["dst"], target_step)
             candidates.append(
                 RelationCandidate(
                     key=f"{trajectory.key}|{family}|{source_step}",
@@ -392,8 +402,7 @@ def build_relation_candidates(trajectory: ParsedTrajectory) -> list[RelationCand
 
 def family_display_name(family: str) -> str:
     spec = REL_SPECS[family]
-    kind_names = {"T": "Thought", "A": "Action", "R": "Result"}
-    return f"{kind_names[spec['src']]} -> {kind_names[spec['dst']]}"
+    return f"{node_kind_name(spec['src'])} -> {node_kind_name(spec['dst'])}"
 
 
 def relation_label_options_for_family(family: str) -> tuple[str, ...]:

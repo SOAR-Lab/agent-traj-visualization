@@ -6,6 +6,7 @@ import pandas as pd
 import streamlit as st
 
 from relationship_viewer_app.data import bug_report_url_from_filename
+from relationship_viewer_app.models import OverviewRow
 from relationship_viewer_app.ui_common import format_task_name
 
 OVERVIEW_SELECTED_FILE_KEY = "relationship_viewer_overview_selected_file"
@@ -37,7 +38,7 @@ def _compact_categories(categories: list[str], limit: int = 5) -> str:
     return " > ".join(parts)
 
 
-def _format_flags(row: dict, limit: int = 4) -> str:
+def _format_flags(row: OverviewRow, limit: int = 4) -> str:
     flags = [str(tag).lower() for tag in row.get("flagged_relations", [])]
     return ", ".join(flags[:limit]) if flags else "none"
 
@@ -56,7 +57,7 @@ def _relation_counts_df(relation_counts: dict[str, int], limit: int = 8) -> pd.D
     )
 
 
-def _overview_table_df(rows: list[dict]) -> pd.DataFrame:
+def _overview_table_df(rows: list[OverviewRow]) -> pd.DataFrame:
     return pd.DataFrame(
         [
             {
@@ -72,7 +73,7 @@ def _overview_table_df(rows: list[dict]) -> pd.DataFrame:
     )
 
 
-def _overview_summary_metrics(rows: list[dict]) -> None:
+def _overview_summary_metrics(rows: list[OverviewRow]) -> None:
     total = len(rows)
     pass_count = sum(1 for row in rows if row["outcome"] == "pass")
     fail_count = sum(1 for row in rows if row["outcome"] == "fail")
@@ -87,7 +88,7 @@ def _overview_summary_metrics(rows: list[dict]) -> None:
     metric_cols[3].metric("Avg iterations", f"{avg_iterations:.1f}")
 
 
-def render_overview_page(rows: list[dict]) -> str | None:
+def render_overview_page(rows: list[OverviewRow]) -> str | None:
     if not rows:
         st.info("No task runs are available.")
         return None

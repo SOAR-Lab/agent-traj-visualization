@@ -24,6 +24,7 @@ from relationship_viewer_app.constants import (
     REL_SPECS,
     ROOT,
 )
+from relationship_viewer_app.models import OverviewRow
 
 
 def normalize_rel(value: object) -> str:
@@ -77,7 +78,8 @@ def load_relation_labels(folder: str, filename: str) -> pd.DataFrame:
     df = pd.read_csv(path)
     if list(df.columns) != [REL_LABEL_COL]:
         raise ValueError(
-            f"{path} must have exactly one column named '{REL_LABEL_COL}'. Found: {list(df.columns)}"
+            f"{path} must have exactly one column named '{REL_LABEL_COL}'. "
+            f"Found: {list(df.columns)}"
         )
 
     df[REL_LABEL_COL] = df[REL_LABEL_COL].fillna("").astype(str)
@@ -257,9 +259,12 @@ def derive_primary_patch_status(matched_categories: list[str]) -> str:
 
 
 @st.cache_data
-def build_overview_rows(task_files: tuple[str, ...], results_path: Path) -> list[dict]:
+def build_overview_rows(
+    task_files: tuple[str, ...],
+    results_path: Path,
+) -> list[OverviewRow]:
     results = load_results(results_path)
-    rows = []
+    rows: list[OverviewRow] = []
 
     for filename in task_files:
         task_id = Path(filename).stem

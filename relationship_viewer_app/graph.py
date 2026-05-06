@@ -19,7 +19,20 @@ from relationship_viewer_app.constants import (
     THOUGHT_COLOR,
 )
 from relationship_viewer_app.data import category_color, normalize_rel, shorten
-from relationship_viewer_app.models import SidebarControls
+from relationship_viewer_app.models import (
+    EdgeRecord,
+    IterationEdgeRecord,
+    IterationRecord,
+    SidebarControls,
+    StaticRelationRecord,
+)
+from relationship_viewer_app.node_ids import (
+    ACTION_NODE_KIND,
+    RESULT_NODE_KIND,
+    THOUGHT_NODE_KIND,
+    iteration_node_id,
+    step_node_id,
+)
 
 
 def final_result_node_style(patch_status: str, base_size: int) -> tuple[str, str, int]:
@@ -28,8 +41,8 @@ def final_result_node_style(patch_status: str, base_size: int) -> tuple[str, str
     return "#C62828", "FAIL", base_size + 10
 
 
-def build_iterations(cat_df: pd.DataFrame) -> list[dict]:
-    iterations: list[dict] = []
+def build_iterations(cat_df: pd.DataFrame) -> list[IterationRecord]:
+    iterations: list[IterationRecord] = []
     if cat_df.empty:
         return iterations
 
@@ -73,7 +86,7 @@ def build_iterations(cat_df: pd.DataFrame) -> list[dict]:
     return iterations
 
 
-def step_to_iteration_map(iterations: list[dict]) -> dict[int, int]:
+def step_to_iteration_map(iterations: list[IterationRecord]) -> dict[int, int]:
     mapping: dict[int, int] = {}
     for iteration in iterations:
         for step in iteration["steps"]:
@@ -82,10 +95,10 @@ def step_to_iteration_map(iterations: list[dict]) -> dict[int, int]:
 
 
 def build_iteration_action_edges(
-        edge_records: list[dict],
-        step_iteration: dict[int, int],
-) -> list[dict]:
-    iteration_edges = []
+    edge_records: list[EdgeRecord],
+    step_iteration: dict[int, int],
+) -> list[IterationEdgeRecord]:
+    iteration_edges: list[IterationEdgeRecord] = []
 
     for edge in edge_records:
         if edge["family"] != "action_action":
@@ -98,8 +111,8 @@ def build_iteration_action_edges(
             continue
         iteration_edges.append(
             {
-                "source": f"IT_{src_iteration}",
-                "target": f"IT_{dst_iteration}",
+                "source": iteration_node_id(src_iteration),
+                "target": iteration_node_id(dst_iteration),
                 "color": REL_COLOR.get(edge["relation"], DEFAULT_EDGE_COLOR),
                 "label": edge["relation"],
                 "record": edge,
@@ -109,8 +122,10 @@ def build_iteration_action_edges(
     return iteration_edges
 
 
-def collect_static_relation_records(relation_frames: dict[str, pd.DataFrame]) -> list[dict]:
-    records = []
+def collect_static_relation_records(
+    relation_frames: dict[str, pd.DataFrame],
+) -> list[StaticRelationRecord]:
+    records: list[StaticRelationRecord] = []
     for family, frame in relation_frames.items():
         if frame.empty:
             continue
@@ -138,11 +153,11 @@ def relation_passes(rel: str, controls: SidebarControls) -> bool:
 
 
 def build_edge_records(
-        relation_frames: dict[str, pd.DataFrame],
-        max_iter: int,
-        controls: SidebarControls,
-) -> list[dict]:
-    edge_records: list[dict] = []
+    relation_frames: dict[str, pd.DataFrame],
+    max_iter: int,
+    controls: SidebarControls,
+) -> list[EdgeRecord]:
+    edge_records: list[EdgeRecord] = []
 
     def collect_relation_edges(family: str) -> None:
         spec = REL_SPECS[family]
@@ -165,8 +180,8 @@ def build_edge_records(
             edge_records.append(
                 {
                     "family": family,
-                    "source": f"{spec['src']}_{src_index}",
-                    "target": f"{spec['dst']}_{dst_index}",
+                    "source": step_node_id(spec["src"], src_index),
+                    "target": step_node_id(spec["dst"], dst_index),
                     "src_step": src_index,
                     "dst_step": dst_index,
                     "relation": relation,
@@ -188,19 +203,23 @@ def build_edge_records(
 
 
 def build_graph_elements(
-        *,
-        steps: list[int],
-        cat_map: dict[int, str],
-        iterations: list[dict],
-        step_iteration: dict[int, int],
-        edge_records: list[dict],
-        controls: SidebarControls,
-        patch_status: str,
-        max_iter: int,
+    *,
+    steps: list[int],
+    cat_map: dict[int, str],
+    iterations: list[IterationRecord],
+    step_iteration: dict[int, int],
+    edge_records: list[EdgeRecord],
+    controls: SidebarControls,
+    patch_status: str,
+    max_iter: int,
 ) -> tuple[list[Node], list[Edge]]:
     nodes: list[Node] = []
     edges: list[Edge] = []
-    lane_y = {"T": 0, "A": controls.lane_gap, "R": controls.lane_gap * 2}
+    lane_y = {
+        THOUGHT_NODE_KIND: 0,
+        ACTION_NODE_KIND: controls.lane_gap,
+        RESULT_NODE_KIND: controls.lane_gap * 2,
+    }
 
     if controls.graph_mode == "Detailed":
         for step_index in steps:
@@ -220,32 +239,36 @@ def build_graph_elements(
 
             nodes.append(
                 Node(
-                    id=f"T_{step_index}",
+                    id=step_node_id(THOUGHT_NODE_KIND, step_index),
                     label=f"T{step_index}",
                     size=controls.node_size,
                     color=THOUGHT_COLOR,
                     x=step_index * controls.step_spacing,
-                    y=lane_y["T"],
+                    y=lane_y[THOUGHT_NODE_KIND],
                 )
             )
             nodes.append(
                 Node(
-                    id=f"A_{step_index}",
-                    label=f"A{step_index}\n{category_short}" if category_short else f"A{step_index}",
+                    id=step_node_id(ACTION_NODE_KIND, step_index),
+                    label=(
+                        f"A{step_index}\n{category_short}"
+                        if category_short
+                        else f"A{step_index}"
+                    ),
                     size=controls.node_size,
                     color=category_color(category),
                     x=step_index * controls.step_spacing,
-                    y=lane_y["A"],
+                    y=lane_y[ACTION_NODE_KIND],
                 )
             )
             nodes.append(
                 Node(
-                    id=f"R_{step_index}",
+                    id=step_node_id(RESULT_NODE_KIND, step_index),
                     label=result_label,
                     size=result_size,
                     color=result_color,
                     x=step_index * controls.step_spacing,
-                    y=lane_y["R"],
+                    y=lane_y[RESULT_NODE_KIND],
                 )
             )
 
@@ -269,8 +292,8 @@ def build_graph_elements(
                     )
                 edges.append(
                     Edge(
-                        source=f"A_{step_index}",
-                        target=f"R_{step_index}",
+                        source=step_node_id(ACTION_NODE_KIND, step_index),
+                        target=step_node_id(RESULT_NODE_KIND, step_index),
                         color=edge_color,
                         label="",
                     )
@@ -290,7 +313,7 @@ def build_graph_elements(
             label = "\n".join(label_parts)
             nodes.append(
                 Node(
-                    id=f"IT_{iteration_id}",
+                    id=iteration_node_id(iteration_id),
                     label=label,
                     size=controls.node_size + 8,
                     color=category_color(category),
@@ -323,8 +346,8 @@ def build_graph_elements(
 
         if not controls.filters_active:
             for iteration_index in range(len(iterations) - 1):
-                source = f"IT_{iteration_index}"
-                target = f"IT_{iteration_index + 1}"
+                source = iteration_node_id(iteration_index)
+                target = iteration_node_id(iteration_index + 1)
                 if (source, target) in semantic_iteration_pairs:
                     continue
                 edges.append(

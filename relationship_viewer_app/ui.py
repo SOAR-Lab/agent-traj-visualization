@@ -8,12 +8,16 @@ import streamlit.components.v1 as components
 from relationship_viewer_app.constants import (
     CATEGORY_COLOR,
     EDGE_FAMILY_OPTIONS,
+    ROUTE_ANALYSIS,
+    ROUTE_INSPECTOR,
+    ROUTE_LABELING,
+    ROUTE_OVERVIEW,
     STRUCTURAL_EDGE_OPTIONS,
 )
 from relationship_viewer_app.inspector_ui import render_inspector
 from relationship_viewer_app.iteration_ui import render_iteration_context_panel
 from relationship_viewer_app.labeling_ui import render_labeling_page
-from relationship_viewer_app.models import SidebarControls
+from relationship_viewer_app.models import SidebarControls, StaticRelationRecord
 from relationship_viewer_app.overview_ui import OVERVIEW_SELECTED_FILE_KEY, render_overview_page
 from relationship_viewer_app.ui_common import format_task_name
 
@@ -29,28 +33,28 @@ def render_app_header(
 ) -> str:
     with st.container(horizontal=True, vertical_alignment="center"):
         with st.container():
-            st.title("Inspector" if current_route == "Inspector" else "Relationship Viewer")
-            if current_route == "Inspector" and selected_task_id:
+            st.title("Inspector" if current_route == ROUTE_INSPECTOR else "Relationship Viewer")
+            if current_route == ROUTE_INSPECTOR and selected_task_id:
                 st.caption(selected_task_id)
         st.space("stretch")
         if st.button(
-            "Overview",
-            type="primary" if current_route == "Overview" else "secondary",
+            ROUTE_OVERVIEW,
+            type="primary" if current_route == ROUTE_OVERVIEW else "secondary",
             key="nav_overview",
         ):
-            return "Overview"
+            return ROUTE_OVERVIEW
         if st.button(
-            "Analysis",
-            type="primary" if current_route == "Analysis" else "secondary",
+            ROUTE_ANALYSIS,
+            type="primary" if current_route == ROUTE_ANALYSIS else "secondary",
             key="nav_analysis",
         ):
-            return "Analysis"
+            return ROUTE_ANALYSIS
         if st.button(
-            "Labeling",
-            type="primary" if current_route == "Labeling" else "secondary",
+            ROUTE_LABELING,
+            type="primary" if current_route == ROUTE_LABELING else "secondary",
             key="nav_labeling",
         ):
-            return "Labeling"
+            return ROUTE_LABELING
 
     st.divider()
     return current_route
@@ -422,7 +426,8 @@ def render_graph_guide(graph_mode: str) -> None:
 ### How to read this graph
 
 Detailed mode shows one `T -> A -> R` triplet per step.
-Read the graph left to right across iterations, then click any node to inspect that step and its attached relations.
+Read the graph left to right across iterations, then click any node to inspect
+that step and its attached relations.
 """
         )
         return
@@ -431,14 +436,15 @@ Read the graph left to right across iterations, then click any node to inspect t
         """
 ### How to read this graph
 
-Iteration mode collapses consecutive detailed steps with the same action category into iteration nodes like `I7`.
+Iteration mode collapses consecutive detailed steps with the same action category
+into iteration nodes like `I7`.
 Clicking a node opens the grouped content and cross-iteration relations.
 """
     )
 
 
 def render_relationship_metrics(
-    static_relation_records: list[dict],
+    static_relation_records: list[StaticRelationRecord],
     *,
     embedded: bool = False,
 ) -> None:

@@ -7,14 +7,21 @@ import streamlit as st
 
 from relationship_viewer_app.constants import BAD_RELS, LOOPISH_RELS
 from relationship_viewer_app.context import extract_file_mentions, summarize_action
-from relationship_viewer_app.models import SidebarControls
+from relationship_viewer_app.models import EdgeRecord, IterationRecord, SidebarControls
+from relationship_viewer_app.node_ids import (
+    ACTION_NODE_KIND,
+    RESULT_NODE_KIND,
+    THOUGHT_NODE_KIND,
+    node_kind_name,
+    parse_iteration_node_id,
+    parse_step_node_id,
+)
 from relationship_viewer_app.ui_common import format_step_range, wrapped_log_block
 
 
 def _pretty_node_id(node_id: str) -> str:
-    kind, step = node_id.split("_")
-    kind_name = {"T": "Thought", "A": "Action", "R": "Result"}.get(kind, kind)
-    return f"{kind_name} {step}"
+    parsed = parse_step_node_id(node_id)
+    return f"{node_kind_name(parsed.kind)} {parsed.step}"
 
 
 def _relation_table_df(rels: list[dict]) -> pd.DataFrame:
@@ -79,7 +86,14 @@ def _relation_signal_color(relation: str) -> str:
         return "red"
     if relation in LOOPISH_RELS:
         return "violet"
-    if relation in {"Alignment", "Follow-up", "Follow up", "Refinement", "Informative", "Triggering"}:
+    if relation in {
+        "Alignment",
+        "Follow-up",
+        "Follow up",
+        "Refinement",
+        "Informative",
+        "Triggering",
+    }:
         return "green"
     if relation in {"No influence", "No-influence"}:
         return "gray"
@@ -199,8 +213,8 @@ def render_inspector(
     controls: SidebarControls,
     cat_map: dict[int, str],
     log_data: dict[int, dict[str, str]],
-    edge_records: list[dict],
-    iterations: list[dict],
+    edge_records: list[EdgeRecord],
+    iterations: list[IterationRecord],
     step_iteration: dict[int, int],
     standalone: bool = False,
     show_full_inspector_button: bool = False,
@@ -217,15 +231,13 @@ def render_inspector(
     selected_id = str(selected)
 
     if controls.graph_mode == "Detailed":
-        node_kind, step_str = selected_id.split("_")
-        step_index = int(step_str)
+        parsed_node_id = parse_step_node_id(selected_id)
+        node_kind = parsed_node_id.kind
+        step_index = parsed_node_id.step
         category = cat_map.get(step_index, "")
         entry = log_data.get(step_index, {})
 
-        kind_name = {"T": "Thought", "A": "Action", "R": "Result"}.get(
-            node_kind,
-            node_kind,
-        )
+        kind_name = node_kind_name(node_kind)
         rels_for_node = [
             edge
             for edge in edge_records
@@ -273,18 +285,18 @@ def render_inspector(
 
         st.subheader("Raw Log Evidence")
         st.caption("This is the raw log section for the selected node.")
-        if node_kind == "T":
+        if node_kind == THOUGHT_NODE_KIND:
             st.markdown("**Thought**")
             wrapped_log_block(entry.get("thought", ""))
-        elif node_kind == "A":
+        elif node_kind == ACTION_NODE_KIND:
             st.markdown("**Action**")
             wrapped_log_block(entry.get("action", ""))
-        elif node_kind == "R":
+        elif node_kind == RESULT_NODE_KIND:
             st.markdown("**Result**")
             wrapped_log_block(entry.get("result", ""))
         return False
 
-    iteration_id = int(selected_id.replace("IT_", ""))
+    iteration_id = parse_iteration_node_id(selected_id)
     iteration = iterations[iteration_id]
     rels_for_iteration = [
         edge
@@ -330,7 +342,9 @@ def render_inspector(
 
     if rels_for_iteration:
         st.subheader("Relation Evidence")
-        st.caption("Only cross-iteration relations attached to this collapsed iteration are shown here.")
+        st.caption(
+            "Only cross-iteration relations attached to this collapsed iteration are shown here."
+        )
         col_prev, col_next = st.columns(2)
         with col_prev:
             _render_iteration_relation_table(

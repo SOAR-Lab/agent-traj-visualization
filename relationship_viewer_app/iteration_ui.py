@@ -5,6 +5,8 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
+from relationship_viewer_app.models import IterationRecord
+
 
 def _format_iteration_files(files: list[str], limit: int = 2) -> str:
     if not files:
@@ -16,7 +18,7 @@ def _format_iteration_files(files: list[str], limit: int = 2) -> str:
     return label
 
 
-def _format_iteration_signals(iteration: dict) -> str:
+def _format_iteration_signals(iteration: IterationRecord) -> str:
     flagged = iteration.get("flagged_relations", [])
     if flagged:
         return ", ".join(flagged)
@@ -24,7 +26,7 @@ def _format_iteration_signals(iteration: dict) -> str:
     return f"{relation_count} relations" if relation_count else "none"
 
 
-def _iteration_context_df(iterations: list[dict]) -> pd.DataFrame:
+def _iteration_context_df(iterations: list[IterationRecord]) -> pd.DataFrame:
     return pd.DataFrame(
         [
             {
@@ -40,7 +42,7 @@ def _iteration_context_df(iterations: list[dict]) -> pd.DataFrame:
 
 
 def render_iteration_context_panel(
-    iterations: list[dict],
+    iterations: list[IterationRecord],
     *,
     show_heading: bool = True,
 ) -> None:
@@ -50,7 +52,8 @@ def render_iteration_context_panel(
     if show_heading:
         st.markdown("### Iteration Context")
     st.caption(
-        "Collapsed iteration nodes are summarized from the reconstructed log: action, files mentioned, and relation signals."
+        "Collapsed iteration nodes are summarized from the reconstructed log: "
+        "action, files mentioned, and relation signals."
     )
     st.dataframe(
         _iteration_context_df(iterations),

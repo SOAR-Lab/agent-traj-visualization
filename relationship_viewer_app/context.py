@@ -7,6 +7,7 @@ from collections import Counter
 
 from relationship_viewer_app.constants import BAD_RELS, LOOPISH_RELS
 from relationship_viewer_app.data import shorten
+from relationship_viewer_app.models import EdgeRecord, IterationRecord
 
 CALL_RE = re.compile(r"\b([A-Za-z_]\w*)\((.*?)\)")
 FILE_TAG_RE = re.compile(r"<file>(.*?)</file>")
@@ -124,11 +125,11 @@ def summarize_action(action: str, max_len: int = 52) -> str:
 
 
 def build_iteration_contexts(
-    iterations: list[dict],
+    iterations: list[IterationRecord],
     log_data: dict[int, dict[str, str]],
-    edge_records: list[dict],
-) -> list[dict]:
-    enriched = []
+    edge_records: list[EdgeRecord],
+) -> list[IterationRecord]:
+    enriched: list[IterationRecord] = []
 
     for iteration in iterations:
         steps = list(iteration["steps"])
