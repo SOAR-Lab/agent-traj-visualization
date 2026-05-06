@@ -16,10 +16,10 @@ from relationship_viewer_app.constants import (
 )
 from relationship_viewer_app.inspector_ui import render_inspector
 from relationship_viewer_app.iteration_ui import render_iteration_context_panel
-from relationship_viewer_app.labeling_ui import render_labeling_page
+from relationship_viewer_app.labeling_router import render_labeling_page
 from relationship_viewer_app.models import SidebarControls, StaticRelationRecord
 from relationship_viewer_app.overview_ui import OVERVIEW_SELECTED_FILE_KEY, render_overview_page
-from relationship_viewer_app.ui_common import format_task_name
+from relationship_viewer_app.formatting import format_task_name
 
 INSPECTOR_PAGE_TOGGLE_KEY = "relationship_viewer_inspector_separate_page"
 INSPECTOR_PAGE_TOGGLE_QUERY_KEY = "inspector_page"

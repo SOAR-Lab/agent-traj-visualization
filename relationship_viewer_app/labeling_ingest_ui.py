@@ -11,7 +11,7 @@ from relationship_viewer_app.constants import (
     LABELER_STAGE_COMPLETE,
     LABELER_STAGE_INGEST,
 )
-from relationship_viewer_app.labeling_components import (
+from relationship_viewer_app.labeling_common_ui import (
     render_labeling_header,
     render_parser_warnings,
 )
@@ -30,7 +30,7 @@ from relationship_viewer_app.labeling_state import (
     start_annotation_from_local_folder,
     start_annotation_from_sources,
 )
-from relationship_viewer_app.swebench import LOCAL_SWEAGENT_TRAJECTORY_DIR
+from relationship_viewer_app.trajectory_parser import LOCAL_SWEAGENT_TRAJECTORY_DIR
 
 
 def render_ingest_screen() -> None:

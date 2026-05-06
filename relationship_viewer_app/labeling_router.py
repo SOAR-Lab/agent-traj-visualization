@@ -10,7 +10,7 @@ from relationship_viewer_app.constants import (
     LABELER_STAGE_INGEST,
     LABELER_STAGE_WORKSPACE,
 )
-from relationship_viewer_app.labeling_ingest import (
+from relationship_viewer_app.labeling_ingest_ui import (
     render_annotating_screen,
     render_ingest_screen,
 )
@@ -18,8 +18,8 @@ from relationship_viewer_app.labeling_state import (
     LABELER_PASTE_STATE_KEY,
     LABELER_STAGE_STATE_KEY,
 )
-from relationship_viewer_app.labeling_summary import render_summary_screen
-from relationship_viewer_app.labeling_workspace import render_workspace_page
+from relationship_viewer_app.labeling_summary_ui import render_summary_screen
+from relationship_viewer_app.labeling_workspace_ui import render_workspace_page
 
 
 def render_labeling_page() -> None:

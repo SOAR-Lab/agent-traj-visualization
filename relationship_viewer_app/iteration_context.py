@@ -1,4 +1,4 @@
-"""Context summaries for iteration-level views."""
+"""Iteration context summaries for collapsed graph views."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ import re
 from collections import Counter
 
 from relationship_viewer_app.constants import BAD_RELS, LOOPISH_RELS
-from relationship_viewer_app.data import shorten
+from relationship_viewer_app.viewer_data import shorten
 from relationship_viewer_app.models import EdgeRecord, IterationRecord
 
 CALL_RE = re.compile(r"\b([A-Za-z_]\w*)\((.*?)\)")

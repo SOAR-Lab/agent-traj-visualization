@@ -13,7 +13,7 @@ from relationship_viewer_app.constants import (
     LABELER_STAGE_INGEST,
 )
 from relationship_viewer_app.models import ParsedTrajectory, RelationCandidate
-from relationship_viewer_app.swebench import (
+from relationship_viewer_app.trajectory_parser import (
     LOCAL_SWEAGENT_TRAJECTORY_DIR,
     UNLABELED_RELATION_LABEL,
     build_relation_candidates,

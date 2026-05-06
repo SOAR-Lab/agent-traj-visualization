@@ -18,7 +18,7 @@ from relationship_viewer_app.constants import (
     RESULT_COLOR,
     THOUGHT_COLOR,
 )
-from relationship_viewer_app.data import category_color, normalize_rel, shorten
+from relationship_viewer_app.viewer_data import category_color, normalize_rel, shorten
 from relationship_viewer_app.models import (
     EdgeRecord,
     IterationEdgeRecord,

@@ -5,9 +5,9 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
-from relationship_viewer_app.data import bug_report_url_from_filename
+from relationship_viewer_app.viewer_data import bug_report_url_from_filename
 from relationship_viewer_app.models import OverviewRow
-from relationship_viewer_app.ui_common import format_task_name
+from relationship_viewer_app.formatting import format_task_name
 
 OVERVIEW_SELECTED_FILE_KEY = "relationship_viewer_overview_selected_file"
 OVERVIEW_TABLE_HEIGHT = 930

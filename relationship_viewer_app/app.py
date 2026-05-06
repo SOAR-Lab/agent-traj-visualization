@@ -19,8 +19,8 @@ from relationship_viewer_app.constants import (
     ROUTE_LABELING,
     ROUTE_OVERVIEW,
 )
-from relationship_viewer_app.context import build_iteration_contexts
-from relationship_viewer_app.data import (
+from relationship_viewer_app.iteration_context import build_iteration_contexts
+from relationship_viewer_app.viewer_data import (
     build_overview_rows,
     bug_report_url_from_filename,
     corresponding_log_path,
@@ -33,7 +33,7 @@ from relationship_viewer_app.data import (
     parse_reconstructed_log,
     pull_request_url_from_filename,
 )
-from relationship_viewer_app.graph import (
+from relationship_viewer_app.graph_builder import (
     build_edge_records,
     build_graph_elements,
     build_iterations,
@@ -41,7 +41,7 @@ from relationship_viewer_app.graph import (
     step_to_iteration_map,
 )
 from relationship_viewer_app.models import SidebarControls, ViewContext
-from relationship_viewer_app.ui import (
+from relationship_viewer_app.layout_ui import (
     hide_sidebar_chrome,
     OVERVIEW_SELECTED_FILE_KEY,
     render_app_header,

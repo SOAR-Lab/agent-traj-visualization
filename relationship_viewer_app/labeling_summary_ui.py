@@ -14,7 +14,7 @@ from relationship_viewer_app.constants import (
     LOOPISH_RELS,
     NOINF_RELS,
 )
-from relationship_viewer_app.labeling_components import render_labeling_header
+from relationship_viewer_app.labeling_common_ui import render_labeling_header
 from relationship_viewer_app.labeling_state import (
     LABELER_STAGE_STATE_KEY,
     LABELER_WORKSPACE_TOAST_STATE_KEY,
@@ -25,7 +25,10 @@ from relationship_viewer_app.labeling_state import (
     selected_trajectory,
 )
 from relationship_viewer_app.models import ParsedTrajectory, RelationCandidate
-from relationship_viewer_app.swebench import UNLABELED_RELATION_LABEL, label_for_candidate
+from relationship_viewer_app.trajectory_parser import (
+    UNLABELED_RELATION_LABEL,
+    label_for_candidate,
+)
 
 
 def _label_count_rows(stats_candidate_count: int, label_counts: dict[str, int]) -> pd.DataFrame:

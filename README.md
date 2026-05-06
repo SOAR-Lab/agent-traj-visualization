@@ -82,14 +82,23 @@ agent-traj-visualization/
 |- relationship_viewer_app/
 |  |- app.py
 |  |- constants.py
-|  |- data.py
-|  |- graph.py
+|  |- formatting.py
+|  |- graph_builder.py
 |  |- inspector_ui.py
+|  |- iteration_context.py
 |  |- iteration_ui.py
+|  |- labeling_common_ui.py
+|  |- labeling_ingest_ui.py
+|  |- labeling_router.py
+|  |- labeling_state.py
+|  |- labeling_summary_ui.py
+|  |- labeling_workspace_ui.py
+|  |- layout_ui.py
 |  |- models.py
+|  |- node_ids.py
 |  |- overview_ui.py
-|  |- ui.py
-|  |- ui_common.py
+|  |- trajectory_parser.py
+|  |- viewer_data.py
 |- autocoderover_csv/
 |  |- actions_categories/
 |  |- thought_action/

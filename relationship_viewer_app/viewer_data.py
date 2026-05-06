@@ -1,4 +1,4 @@
-"""Data loading and parsing helpers for the relationship viewer."""
+"""Viewer data loading and parsing helpers."""
 
 from __future__ import annotations
 

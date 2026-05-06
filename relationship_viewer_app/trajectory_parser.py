@@ -1,4 +1,4 @@
-"""SWE-agent trajectory parsing and relationship-label export helpers."""
+"""Trajectory parsing and relationship-label export helpers."""
 
 from __future__ import annotations
 

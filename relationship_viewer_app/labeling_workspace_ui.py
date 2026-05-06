@@ -10,7 +10,7 @@ from relationship_viewer_app.constants import (
     LABELER_STAGE_INGEST,
     REL_SPECS,
 )
-from relationship_viewer_app.labeling_components import (
+from relationship_viewer_app.labeling_common_ui import (
     render_labeling_header,
     render_parser_warnings,
 )
@@ -24,7 +24,7 @@ from relationship_viewer_app.labeling_state import (
     loaded_trajectories,
 )
 from relationship_viewer_app.models import ParsedTrajectory, RelationCandidate
-from relationship_viewer_app.swebench import (
+from relationship_viewer_app.trajectory_parser import (
     UNLABELED_RELATION_LABEL,
     build_relation_candidates,
     family_display_name,
@@ -35,7 +35,7 @@ from relationship_viewer_app.swebench import (
     short_preview,
     ui_label_options_for_family,
 )
-from relationship_viewer_app.ui_common import wrapped_log_block
+from relationship_viewer_app.formatting import wrapped_log_block
 
 LABELER_EDITOR_VERSION = "v4"
 
