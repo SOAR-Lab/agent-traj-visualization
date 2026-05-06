@@ -33,58 +33,110 @@ from relationship_viewer_app.labeling_state import (
 from relationship_viewer_app.trajectory_parser import LOCAL_SWEAGENT_TRAJECTORY_DIR
 
 
-def render_ingest_screen() -> None:
-    render_labeling_header("INGEST RAW TRACE", "Paste or upload a raw agent trace.")
-
-    upload_tab, paste_tab, local_tab = st.tabs(["Upload", "Paste", "Local folder"])
-    with upload_tab:
+def _render_ingest_dropzone() -> tuple[list[tuple[str, bytes]], bool] | None:
+    _, upload_col, _ = st.columns([0.25, 0.5, 0.25])
+    with upload_col:
         uploaded_files = st.file_uploader(
-            "Drop files here",
+            "Drop or choose trace files",
             type=TRACE_UPLOAD_TYPES,
             accept_multiple_files=True,
             help=".jsonl, .json, .traj, .log, .txt, or .zip up to 25 MB",
         )
-        if uploaded_files:
-            sources = [
-                (uploaded_file.name, uploaded_file.getvalue())
-                for uploaded_file in uploaded_files
-            ]
-            upload_signature = tuple((name, len(contents)) for name, contents in sources)
-            if upload_signature != st.session_state.get(LABELER_UPLOAD_SIGNATURE_STATE_KEY):
-                st.session_state[LABELER_UPLOAD_SIGNATURE_STATE_KEY] = upload_signature
-                if start_annotation_from_sources(sources):
-                    st.rerun()
+        st.caption("or")
 
-    with paste_tab:
-        pasted_trace = st.text_area(
-            "Raw trace",
-            key=LABELER_PASTE_STATE_KEY,
-            height=220,
-            placeholder="Paste raw trace text here.",
-        )
-        if st.button(
-            "Annotate pasted trace",
-            type="primary",
-            width="stretch",
-            disabled=not pasted_trace.strip(),
-        ):
-            sources = [("pasted-trace.txt", pasted_trace.encode("utf-8"))]
-            if start_annotation_from_sources(sources):
-                st.rerun()
+        with st.popover("Paste a trace", use_container_width=True):
+            pasted_trace = st.text_area(
+                "Paste trace text",
+                key=LABELER_PASTE_STATE_KEY,
+                height=170,
+                placeholder="Paste raw trace text here.",
+            )
+            if st.button(
+                "Annotate pasted trace",
+                type="primary",
+                width="stretch",
+                disabled=not pasted_trace.strip(),
+            ):
+                return [("pasted-trace.txt", pasted_trace.encode("utf-8"))], False
 
-    with local_tab:
         if LOCAL_SWEAGENT_TRAJECTORY_DIR.exists():
-            st.caption(str(LOCAL_SWEAGENT_TRAJECTORY_DIR))
             if st.button("Load local SWE-agent folder", width="stretch"):
                 if start_annotation_from_local_folder():
                     st.rerun()
-        else:
-            st.info("No local SWE-agent trajectory folder found.")
+
+    if not uploaded_files:
+        return None
+    return [
+        (uploaded_file.name, uploaded_file.getvalue())
+        for uploaded_file in uploaded_files
+    ], True
+
+
+def render_ingest_screen() -> None:
+    render_labeling_header("INGEST RAW TRACE", "Paste or upload a raw agent trace.")
+
+    ingest_result = _render_ingest_dropzone()
+    if ingest_result:
+        sources, dedupe_upload = ingest_result
+        upload_signature = tuple((name, len(contents)) for name, contents in sources)
+        if (
+            not dedupe_upload
+            or upload_signature != st.session_state.get(LABELER_UPLOAD_SIGNATURE_STATE_KEY)
+        ):
+            st.session_state[LABELER_UPLOAD_SIGNATURE_STATE_KEY] = upload_signature
+            if start_annotation_from_sources(sources):
+                st.rerun()
 
     render_parser_warnings(
         st.session_state.get(LABELER_ERRORS_STATE_KEY, []),
         expanded=True,
     )
+
+
+def _render_progress_panel(
+    *,
+    steps_count: int,
+    candidate_count: int,
+    labeled_count: int,
+    progress: float,
+) -> None:
+    percent = round(progress * 100)
+    edge_progress = labeled_count / candidate_count if candidate_count else 0
+    progress_rows = pd.DataFrame(
+        [
+            {
+                "Task": "Parsing raw trace",
+                "Status": "done",
+                "Detail": (
+                    f"Found {steps_count} iterations, "
+                    f"{steps_count * 3} turns"
+                ),
+            },
+            {
+                "Task": "Classifying node types",
+                "Status": "done",
+                "Detail": (
+                    f"{steps_count} thoughts, "
+                    f"{steps_count} actions, "
+                    f"{steps_count} results"
+                ),
+            },
+            {
+                "Task": "Labeling relationships",
+                "Status": "running",
+                "Detail": f"{labeled_count} of {candidate_count} edges labeled",
+            },
+        ]
+    )
+
+    with st.container(border=True):
+        st.caption("PROGRESS")
+        st.progress(progress, text=f"Progress {percent}%")
+        st.dataframe(progress_rows, hide_index=True, width="stretch")
+        st.progress(
+            edge_progress,
+            text=f"Relationship labels: {labeled_count} of {candidate_count}",
+        )
 
 
 def render_annotating_screen() -> None:
@@ -104,37 +156,16 @@ def render_annotating_screen() -> None:
 
     stats = annotation_stats(trajectory, labels())
     progress = 0.68
-    st.progress(progress, text=f"Progress {round(progress * 100)}%")
 
-    progress_rows = pd.DataFrame(
-        [
-            {
-                "Task": "Parsing raw trace",
-                "Status": "done",
-                "Detail": (
-                    f"Found {len(trajectory.steps)} iterations, "
-                    f"{len(trajectory.steps) * 3} turns"
-                ),
-            },
-            {
-                "Task": "Classifying node types",
-                "Status": "done",
-                "Detail": (
-                    f"{len(trajectory.steps)} thoughts, "
-                    f"{len(trajectory.steps)} actions, "
-                    f"{len(trajectory.steps)} results"
-                ),
-            },
-            {
-                "Task": "Labeling relationships",
-                "Status": "running",
-                "Detail": f"{stats.labeled_count} of {stats.candidate_count} edges labeled",
-            },
-        ]
+    _render_progress_panel(
+        steps_count=len(trajectory.steps),
+        candidate_count=stats.candidate_count,
+        labeled_count=stats.labeled_count,
+        progress=progress,
     )
 
-    with st.container(border=True):
-        st.dataframe(progress_rows, hide_index=True, width="stretch")
+    _, cancel_col = st.columns([0.9, 0.1])
+    with cancel_col:
         if st.button("Cancel"):
             st.session_state[LABELER_STAGE_STATE_KEY] = LABELER_STAGE_INGEST
             st.rerun()

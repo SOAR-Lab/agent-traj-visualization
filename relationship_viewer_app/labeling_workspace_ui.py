@@ -12,6 +12,7 @@ from relationship_viewer_app.constants import (
 )
 from relationship_viewer_app.labeling_common_ui import (
     render_labeling_header,
+    render_labeling_notice,
     render_parser_warnings,
 )
 from relationship_viewer_app.labeling_state import (
@@ -139,7 +140,7 @@ def render_workspace_page() -> None:
     )
 
     if st.session_state.pop(LABELER_WORKSPACE_TOAST_STATE_KEY, False):
-        st.success(
+        render_labeling_notice(
             "Opening single-run workspace with all annotations applied. "
             "You can edit any relationship label in the inspector."
         )

@@ -128,6 +128,7 @@ def render_summary_screen() -> None:
     with left:
         with st.container(border=True):
             st.caption("ANNOTATION SUMMARY")
+            st.caption("NODES")
             node_cols = st.columns(3)
             node_cols[0].metric("Thoughts", len(trajectory.steps))
             node_cols[1].metric("Actions", len(trajectory.steps))

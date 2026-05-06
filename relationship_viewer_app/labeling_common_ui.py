@@ -12,6 +12,10 @@ def render_labeling_header(eyebrow: str, title: str, meta: str | None = None) ->
         st.caption(meta)
 
 
+def render_labeling_notice(message: str) -> None:
+    st.success(message)
+
+
 def render_parser_warnings(errors: list[str], *, expanded: bool = False) -> None:
     if not errors:
         return
