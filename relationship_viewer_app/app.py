@@ -9,9 +9,15 @@ from relationship_viewer_app.constants import (
     ACTIONS_CATEGORIES_CAT_COL,
     ACTIONS_CATEGORIES_FOLDER,
     ACTIONS_CATEGORIES_ITER_COL,
+    DETAIL_PAGE_GRAPH,
+    DETAIL_PAGE_INSPECTOR,
     REL_SPECS,
     RESULTS_PATH,
     ROOT,
+    ROUTE_ANALYSIS,
+    ROUTE_INSPECTOR,
+    ROUTE_LABELING,
+    ROUTE_OVERVIEW,
 )
 from relationship_viewer_app.context import build_iteration_contexts
 from relationship_viewer_app.data import (
@@ -34,7 +40,7 @@ from relationship_viewer_app.graph import (
     collect_static_relation_records,
     step_to_iteration_map,
 )
-from relationship_viewer_app.models import SidebarControls
+from relationship_viewer_app.models import SidebarControls, ViewContext
 from relationship_viewer_app.ui import (
     hide_sidebar_chrome,
     OVERVIEW_SELECTED_FILE_KEY,
@@ -68,7 +74,7 @@ def _queue_analysis_filename(filename: str, *, clear_stale_node: bool = True) ->
         st.session_state.pop(DETAIL_NODE_STATE_KEY, None)
 
 
-def _build_view_context(filename: str, controls: SidebarControls) -> dict:
+def _build_view_context(filename: str, controls: SidebarControls) -> ViewContext:
     cat_df = load_categories(filename)
 
     max_iter = int(cat_df[ACTIONS_CATEGORIES_ITER_COL].max())
@@ -130,115 +136,140 @@ def _build_view_context(filename: str, controls: SidebarControls) -> dict:
     }
 
 
-def main() -> None:
-    st.set_page_config(page_title="Relationship Viewer", layout="wide")
+def _apply_route_change(
+    *,
+    selected_route: str,
+    previous_route: str,
+    task_files: list[str],
+) -> None:
+    st.session_state[APP_ROUTE_STATE_KEY] = selected_route
+    if selected_route == ROUTE_OVERVIEW:
+        st.session_state[DETAIL_PAGE_STATE_KEY] = DETAIL_PAGE_GRAPH
+        st.session_state.pop(DETAIL_NODE_STATE_KEY, None)
+    elif selected_route == ROUTE_ANALYSIS:
+        overview_filename = st.session_state.get(OVERVIEW_SELECTED_FILE_KEY)
+        if previous_route == ROUTE_OVERVIEW and overview_filename in task_files:
+            _queue_analysis_filename(overview_filename)
+        st.session_state[DETAIL_PAGE_STATE_KEY] = DETAIL_PAGE_GRAPH
+    elif selected_route == ROUTE_LABELING:
+        st.session_state[DETAIL_PAGE_STATE_KEY] = DETAIL_PAGE_GRAPH
+    st.rerun()
 
-    detail_page = st.session_state.get(DETAIL_PAGE_STATE_KEY, "graph")
-    detail_node_id = st.session_state.get(DETAIL_NODE_STATE_KEY)
-    if detail_page == "inspector":
-        st.session_state[APP_ROUTE_STATE_KEY] = "Inspector"
 
-    route = st.session_state.get(APP_ROUTE_STATE_KEY, "Overview")
-    selected_filename = st.session_state.get(DETAIL_FILENAME_STATE_KEY)
-    selected_task_id = Path(selected_filename).stem if selected_filename else None
-
-    task_files = list_task_files() if ROOT.exists() else []
-
-    if route == "Inspector":
-        hide_sidebar_chrome()
-
-    selected_route = render_app_header(
-        current_route=route,
-        selected_task_id=selected_task_id,
-    )
-    if route == "Inspector" and st.session_state.pop(INSPECTOR_SCROLL_TOP_STATE_KEY, False):
-        scroll_page_to_top()
-
-    if selected_route != route:
-        st.session_state[APP_ROUTE_STATE_KEY] = selected_route
-        if selected_route == "Overview":
-            st.session_state[DETAIL_PAGE_STATE_KEY] = "graph"
-            st.session_state.pop(DETAIL_NODE_STATE_KEY, None)
-        elif selected_route == "Analysis":
-            overview_filename = st.session_state.get(OVERVIEW_SELECTED_FILE_KEY)
-            if route == "Overview" and overview_filename in task_files:
-                _queue_analysis_filename(overview_filename)
-            st.session_state[DETAIL_PAGE_STATE_KEY] = "graph"
-        elif selected_route == "Labeling":
-            st.session_state[DETAIL_PAGE_STATE_KEY] = "graph"
-        st.rerun()
-
-    if route == "Labeling":
-        render_labeling_page()
-        return
-
+def _ensure_dataset_available(task_files: list[str]) -> None:
     if not ROOT.exists():
         st.error(f"Folder not found: {ROOT.resolve()}")
         st.stop()
-
     if not task_files:
         st.error(f"No files found in {ROOT / ACTIONS_CATEGORIES_FOLDER}")
         st.stop()
 
-    if route == "Overview":
-        try:
-            overview_rows = build_overview_rows(tuple(task_files), RESULTS_PATH)
-        except Exception as exc:
-            st.error(str(exc))
-            st.stop()
 
-        opened_filename = render_overview_page(overview_rows)
-        if opened_filename:
-            _queue_analysis_filename(opened_filename)
-            st.session_state[APP_ROUTE_STATE_KEY] = "Analysis"
-            st.session_state[DETAIL_PAGE_STATE_KEY] = "graph"
-            st.rerun()
-        return
+def _render_overview_route(task_files: list[str]) -> None:
+    try:
+        overview_rows = build_overview_rows(tuple(task_files), RESULTS_PATH)
+    except Exception as exc:
+        st.error(str(exc))
+        st.stop()
 
-    if route == "Inspector":
-        filename = st.session_state.get(DETAIL_FILENAME_STATE_KEY)
-        controls = st.session_state.get(DETAIL_CONTROLS_STATE_KEY)
+    opened_filename = render_overview_page(overview_rows)
+    if opened_filename:
+        _queue_analysis_filename(opened_filename)
+        st.session_state[APP_ROUTE_STATE_KEY] = ROUTE_ANALYSIS
+        st.session_state[DETAIL_PAGE_STATE_KEY] = DETAIL_PAGE_GRAPH
+        st.rerun()
 
-        if (
-                not filename
-                or filename not in task_files
-                or not isinstance(controls, SidebarControls)
-                or not detail_node_id
-        ):
-            with st.container(border=True):
-                st.subheader("No inspector target selected")
-                st.write("Open a run in Analysis and select a graph node to inspect raw evidence.")
-                if st.button("Open analysis", type="primary"):
-                    st.session_state[APP_ROUTE_STATE_KEY] = "Analysis"
-                    st.session_state[DETAIL_PAGE_STATE_KEY] = "graph"
-                    st.session_state.pop(DETAIL_NODE_STATE_KEY, None)
-                    st.rerun()
-            return
 
-        try:
-            view = _build_view_context(filename, controls)
-        except Exception as exc:
-            st.error(str(exc))
-            st.stop()
-
-        if detail_node_id not in view["available_node_ids"]:
+def _render_missing_inspector_target() -> None:
+    with st.container(border=True):
+        st.subheader("No inspector target selected")
+        st.write("Open a run in Analysis and select a graph node to inspect raw evidence.")
+        if st.button("Open analysis", type="primary"):
+            st.session_state[APP_ROUTE_STATE_KEY] = ROUTE_ANALYSIS
+            st.session_state[DETAIL_PAGE_STATE_KEY] = DETAIL_PAGE_GRAPH
             st.session_state.pop(DETAIL_NODE_STATE_KEY, None)
-            st.session_state[APP_ROUTE_STATE_KEY] = "Analysis"
-            st.session_state[DETAIL_PAGE_STATE_KEY] = "graph"
             st.rerun()
 
-        render_inspector(
-            selected=detail_node_id,
-            controls=controls,
-            cat_map=view["cat_map"],
-            log_data=view["log_data"],
-            edge_records=view["edge_records"],
-            iterations=view["iterations"],
-            step_iteration=view["step_iteration"],
-            standalone=True,
-        )
+
+def _render_inspector_route(
+    *,
+    task_files: list[str],
+    detail_node_id: str | None,
+) -> None:
+    filename = st.session_state.get(DETAIL_FILENAME_STATE_KEY)
+    controls = st.session_state.get(DETAIL_CONTROLS_STATE_KEY)
+
+    if (
+        not filename
+        or filename not in task_files
+        or not isinstance(controls, SidebarControls)
+        or not detail_node_id
+    ):
+        _render_missing_inspector_target()
         return
 
+    try:
+        view = _build_view_context(filename, controls)
+    except Exception as exc:
+        st.error(str(exc))
+        st.stop()
+
+    if detail_node_id not in view["available_node_ids"]:
+        st.session_state.pop(DETAIL_NODE_STATE_KEY, None)
+        st.session_state[APP_ROUTE_STATE_KEY] = ROUTE_ANALYSIS
+        st.session_state[DETAIL_PAGE_STATE_KEY] = DETAIL_PAGE_GRAPH
+        st.rerun()
+
+    render_inspector(
+        selected=detail_node_id,
+        controls=controls,
+        cat_map=view["cat_map"],
+        log_data=view["log_data"],
+        edge_records=view["edge_records"],
+        iterations=view["iterations"],
+        step_iteration=view["step_iteration"],
+        standalone=True,
+    )
+
+
+def _render_patch_summary(view: ViewContext, controls: SidebarControls) -> None:
+    with st.container(border=True):
+        render_patch_overview(
+            task_id=view["task_id"],
+            bug_report_url=view["bug_report_url"],
+            pull_request_url=view["pull_request_url"],
+            graph_mode=controls.graph_mode,
+            iterations_count=len(view["iterations"]),
+            steps_count=len(view["steps"]),
+            patch_status=view["patch_status"],
+            matched_patch_categories=view["matched_patch_categories"],
+        )
+
+
+def _render_analysis_support_tabs(view: ViewContext, controls: SidebarControls) -> None:
+    support_tabs = st.tabs(["Guide", "Legend", "Relationship Metrics"])
+    with support_tabs[0]:
+        render_graph_guide(controls.graph_mode)
+    with support_tabs[1]:
+        render_shared_legend()
+    with support_tabs[2]:
+        render_relationship_metrics(view["static_relation_records"], embedded=True)
+
+
+def _open_inspector_route() -> None:
+    st.session_state[DETAIL_PAGE_STATE_KEY] = DETAIL_PAGE_INSPECTOR
+    st.session_state[APP_ROUTE_STATE_KEY] = ROUTE_INSPECTOR
+    st.session_state[INSPECTOR_SCROLL_TOP_STATE_KEY] = True
+    st.rerun()
+
+
+def _render_analysis_route(
+    *,
+    task_files: list[str],
+    selected_filename: str | None,
+    detail_page: str,
+    detail_node_id: str | None,
+) -> None:
     st.markdown("### Analysis")
     saved_controls = st.session_state.get(DETAIL_CONTROLS_STATE_KEY)
     pending_filename = st.session_state.pop(PENDING_ANALYSIS_FILENAME_STATE_KEY, None)
@@ -258,31 +289,21 @@ def main() -> None:
         st.error(str(exc))
         st.stop()
 
-    with st.container(border=True):
-        render_patch_overview(
-            task_id=view["task_id"],
-            bug_report_url=view["bug_report_url"],
-            pull_request_url=view["pull_request_url"],
-            graph_mode=controls.graph_mode,
-            iterations_count=len(view["iterations"]),
-            steps_count=len(view["steps"]),
-            patch_status=view["patch_status"],
-            matched_patch_categories=view["matched_patch_categories"],
-        )
+    _render_patch_summary(view, controls)
 
     if controls.graph_mode == "Iteration":
         with st.expander("Iteration Context", expanded=True):
             render_iteration_context_panel(view["iterations"], show_heading=False)
 
-    if not controls.inspector_separate_page and detail_page == "inspector":
-        st.session_state[DETAIL_PAGE_STATE_KEY] = "graph"
-        detail_page = "graph"
+    if not controls.inspector_separate_page and detail_page == DETAIL_PAGE_INSPECTOR:
+        st.session_state[DETAIL_PAGE_STATE_KEY] = DETAIL_PAGE_GRAPH
+        detail_page = DETAIL_PAGE_GRAPH
 
     if detail_node_id not in view["available_node_ids"]:
         st.session_state.pop(DETAIL_NODE_STATE_KEY, None)
-        if detail_page == "inspector":
-            st.session_state[DETAIL_PAGE_STATE_KEY] = "graph"
-            detail_page = "graph"
+        if detail_page == DETAIL_PAGE_INSPECTOR:
+            st.session_state[DETAIL_PAGE_STATE_KEY] = DETAIL_PAGE_GRAPH
+            detail_page = DETAIL_PAGE_GRAPH
         detail_node_id = None
 
     st.markdown("### Relationship Graph")
@@ -295,10 +316,7 @@ def main() -> None:
         st.session_state[DETAIL_NODE_STATE_KEY] = str(selected)
 
     if controls.inspector_separate_page and selected:
-        st.session_state[DETAIL_PAGE_STATE_KEY] = "inspector"
-        st.session_state[APP_ROUTE_STATE_KEY] = "Inspector"
-        st.session_state[INSPECTOR_SCROLL_TOP_STATE_KEY] = True
-        st.rerun()
+        _open_inspector_route()
 
     if controls.inspector_separate_page:
         st.markdown("---")
@@ -315,17 +333,64 @@ def main() -> None:
             show_full_inspector_button=True,
         )
         if open_full_inspector:
-            st.session_state[DETAIL_PAGE_STATE_KEY] = "inspector"
-            st.session_state[APP_ROUTE_STATE_KEY] = "Inspector"
-            st.session_state[INSPECTOR_SCROLL_TOP_STATE_KEY] = True
-            st.rerun()
+            _open_inspector_route()
 
-    support_tab_names = ["Guide", "Legend", "Relationship Metrics"]
-    support_tabs = st.tabs(support_tab_names)
+    _render_analysis_support_tabs(view, controls)
 
-    with support_tabs[0]:
-        render_graph_guide(controls.graph_mode)
-    with support_tabs[1]:
-        render_shared_legend()
-    with support_tabs[2]:
-        render_relationship_metrics(view["static_relation_records"], embedded=True)
+
+def main() -> None:
+    st.set_page_config(page_title="Relationship Viewer", layout="wide")
+
+    detail_page = st.session_state.get(DETAIL_PAGE_STATE_KEY, DETAIL_PAGE_GRAPH)
+    detail_node_id = st.session_state.get(DETAIL_NODE_STATE_KEY)
+    if detail_page == DETAIL_PAGE_INSPECTOR:
+        st.session_state[APP_ROUTE_STATE_KEY] = ROUTE_INSPECTOR
+
+    route = st.session_state.get(APP_ROUTE_STATE_KEY, ROUTE_OVERVIEW)
+    selected_filename = st.session_state.get(DETAIL_FILENAME_STATE_KEY)
+    selected_task_id = Path(selected_filename).stem if selected_filename else None
+    task_files = list_task_files() if ROOT.exists() else []
+
+    if route == ROUTE_INSPECTOR:
+        hide_sidebar_chrome()
+
+    selected_route = render_app_header(
+        current_route=route,
+        selected_task_id=selected_task_id,
+    )
+    if route == ROUTE_INSPECTOR and st.session_state.pop(
+        INSPECTOR_SCROLL_TOP_STATE_KEY,
+        False,
+    ):
+        scroll_page_to_top()
+
+    if selected_route != route:
+        _apply_route_change(
+            selected_route=selected_route,
+            previous_route=route,
+            task_files=task_files,
+        )
+
+    if route == ROUTE_LABELING:
+        render_labeling_page()
+        return
+
+    _ensure_dataset_available(task_files)
+
+    if route == ROUTE_OVERVIEW:
+        _render_overview_route(task_files)
+        return
+
+    if route == ROUTE_INSPECTOR:
+        _render_inspector_route(
+            task_files=task_files,
+            detail_node_id=detail_node_id,
+        )
+        return
+
+    _render_analysis_route(
+        task_files=task_files,
+        selected_filename=selected_filename,
+        detail_page=detail_page,
+        detail_node_id=detail_node_id,
+    )
