@@ -2,11 +2,30 @@
 
 from pathlib import Path
 
+from relationship_viewer_app.node_ids import (
+    ACTION_NODE_KIND,
+    RESULT_NODE_KIND,
+    THOUGHT_NODE_KIND,
+)
+
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 JSON_DATA_DIR = PROJECT_ROOT / "data" / "json"
 ROOT = PROJECT_ROOT / "autocoderover_csv"
 LOGS_DIR = PROJECT_ROOT / "reconstructed_autocoderover"
 RESULTS_PATH = JSON_DATA_DIR / "results.json"
+
+ROUTE_OVERVIEW = "Overview"
+ROUTE_ANALYSIS = "Analysis"
+ROUTE_INSPECTOR = "Inspector"
+ROUTE_LABELING = "Labeling"
+
+DETAIL_PAGE_GRAPH = "graph"
+DETAIL_PAGE_INSPECTOR = "inspector"
+
+LABELER_STAGE_INGEST = "ingest"
+LABELER_STAGE_ANNOTATING = "annotating"
+LABELER_STAGE_COMPLETE = "complete"
+LABELER_STAGE_WORKSPACE = "workspace"
 
 ACTIONS_CATEGORIES_FOLDER = "actions_categories"
 ACTIONS_CATEGORIES_ITER_COL = "iteration"
@@ -14,11 +33,36 @@ ACTIONS_CATEGORIES_CAT_COL = "category"
 REL_LABEL_COL = "label"
 
 REL_SPECS = {
-    "thought_action": {"src": "T", "dst": "A", "offset": 0, "default_on": True},
-    "thought_thought": {"src": "T", "dst": "T", "offset": 1, "default_on": True},
-    "action_action": {"src": "A", "dst": "A", "offset": 1, "default_on": True},
-    "result_thought": {"src": "R", "dst": "T", "offset": 1, "default_on": True},
-    "result_action": {"src": "R", "dst": "A", "offset": 1, "default_on": True},
+    "thought_action": {
+        "src": THOUGHT_NODE_KIND,
+        "dst": ACTION_NODE_KIND,
+        "offset": 0,
+        "default_on": True,
+    },
+    "thought_thought": {
+        "src": THOUGHT_NODE_KIND,
+        "dst": THOUGHT_NODE_KIND,
+        "offset": 1,
+        "default_on": True,
+    },
+    "action_action": {
+        "src": ACTION_NODE_KIND,
+        "dst": ACTION_NODE_KIND,
+        "offset": 1,
+        "default_on": True,
+    },
+    "result_thought": {
+        "src": RESULT_NODE_KIND,
+        "dst": THOUGHT_NODE_KIND,
+        "offset": 1,
+        "default_on": True,
+    },
+    "result_action": {
+        "src": RESULT_NODE_KIND,
+        "dst": ACTION_NODE_KIND,
+        "offset": 1,
+        "default_on": True,
+    },
 }
 
 REL_COLOR = {
