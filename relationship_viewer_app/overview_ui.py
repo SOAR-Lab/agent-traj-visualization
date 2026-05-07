@@ -5,11 +5,14 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
+from relationship_viewer_app.constants import (
+    OVERVIEW_NOTICE_STATE_KEY,
+    OVERVIEW_SELECTED_FILE_KEY,
+)
 from relationship_viewer_app.viewer_data import bug_report_url_from_filename
 from relationship_viewer_app.models import OverviewRow
 from relationship_viewer_app.formatting import format_task_name
 
-OVERVIEW_SELECTED_FILE_KEY = "relationship_viewer_overview_selected_file"
 OVERVIEW_TABLE_HEIGHT = 930
 
 
@@ -77,21 +80,26 @@ def _overview_summary_metrics(rows: list[OverviewRow]) -> None:
     total = len(rows)
     pass_count = sum(1 for row in rows if row["outcome"] == "pass")
     fail_count = sum(1 for row in rows if row["outcome"] == "fail")
+    unscored_count = sum(1 for row in rows if row["outcome"] == "unscored")
     avg_iterations = (
         sum(int(row["iteration_count"]) for row in rows) / total if total else 0
     )
 
-    metric_cols = st.columns(4)
+    metric_cols = st.columns(5)
     metric_cols[0].metric("Runs", total)
     metric_cols[1].metric("Pass", pass_count)
     metric_cols[2].metric("Fail", fail_count)
-    metric_cols[3].metric("Avg iterations", f"{avg_iterations:.1f}")
+    metric_cols[3].metric("Unscored", unscored_count)
+    metric_cols[4].metric("Avg iterations", f"{avg_iterations:.1f}")
 
 
 def render_overview_page(rows: list[OverviewRow]) -> str | None:
     if not rows:
         st.info("No task runs are available.")
         return None
+
+    if notice := st.session_state.pop(OVERVIEW_NOTICE_STATE_KEY, None):
+        st.success(str(notice))
 
     selected_filename = st.session_state.get(OVERVIEW_SELECTED_FILE_KEY)
     if selected_filename not in {row["filename"] for row in rows}:
@@ -116,7 +124,7 @@ def render_overview_page(rows: list[OverviewRow]) -> str | None:
             st.caption("FILTERS")
             outcome_filter = st.radio(
                 "Outcome",
-                ["all", "pass", "fail"],
+                ["all", "pass", "fail", "unscored"],
                 horizontal=False,
                 label_visibility="visible",
             )
@@ -183,7 +191,11 @@ def render_overview_page(rows: list[OverviewRow]) -> str | None:
 
     with summary_col:
         with st.container(border=True):
-            bug_report_url = bug_report_url_from_filename(selected_row["filename"])
+            bug_report_url = (
+                bug_report_url_from_filename(selected_row["filename"])
+                if selected_row.get("pull_request_url")
+                else None
+            )
             st.caption("RUN SUMMARY")
             st.subheader(format_task_name(selected_row["task_id"]))
             st.caption(selected_row["task_id"])

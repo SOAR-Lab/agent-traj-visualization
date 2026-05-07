@@ -18,6 +18,7 @@ from relationship_viewer_app.constants import (
     ACTIONS_CATEGORIES_ITER_COL,
     BAD_RELS,
     CATEGORY_COLOR,
+    LABELER_VIEWER_EXPORTS_PATH,
     LOOPISH_RELS,
     LOGS_DIR,
     REL_LABEL_COL,
@@ -155,6 +156,32 @@ def load_results(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+@st.cache_data
+def load_labeler_export_metadata(path: Path = LABELER_VIEWER_EXPORTS_PATH) -> dict[str, dict]:
+    if not path.exists():
+        return {}
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return {}
+    if not isinstance(payload, dict):
+        return {}
+
+    runs = payload.get("runs")
+    if isinstance(runs, dict):
+        return {
+            str(filename): meta
+            for filename, meta in runs.items()
+            if isinstance(meta, dict)
+        }
+
+    return {
+        str(filename): meta
+        for filename, meta in payload.items()
+        if isinstance(meta, dict)
+    }
+
+
 def get_patch_categories(task_id: str, results: dict) -> list[str]:
     if not results:
         return []
@@ -264,10 +291,13 @@ def build_overview_rows(
     results_path: Path,
 ) -> list[OverviewRow]:
     results = load_results(results_path)
+    labeler_exports = load_labeler_export_metadata()
     rows: list[OverviewRow] = []
 
     for filename in task_files:
-        task_id = Path(filename).stem
+        export_meta = labeler_exports.get(filename, {})
+        is_labeler_export = bool(export_meta)
+        task_id = str(export_meta.get("task_id") or Path(filename).stem)
         cat_df = load_categories(filename)
         ordered_categories = (
             cat_df.sort_values(ACTIONS_CATEGORIES_ITER_COL)[ACTIONS_CATEGORIES_CAT_COL]
@@ -292,9 +322,17 @@ def build_overview_rows(
                 if relation in BAD_RELS and first_flagged_iteration is None:
                     first_flagged_iteration = int(index)
 
-        matched_patch_categories = get_patch_categories(task_id, results)
-        patch_status = derive_primary_patch_status(matched_patch_categories)
-        outcome = "pass" if patch_status == "RESOLVED" else "fail"
+        if is_labeler_export:
+            matched_patch_categories = []
+            patch_status = "UNKNOWN"
+            outcome = "unscored"
+        else:
+            matched_patch_categories = get_patch_categories(task_id, results)
+            patch_status = derive_primary_patch_status(matched_patch_categories)
+            if not matched_patch_categories:
+                outcome = "unscored"
+            else:
+                outcome = "pass" if patch_status == "RESOLVED" else "fail"
         flagged_relations = sorted(
             relation
             for relation in relation_counts
@@ -305,7 +343,7 @@ def build_overview_rows(
             {
                 "filename": filename,
                 "task_id": task_id,
-                "agent_name": "autocoderover",
+                "agent_name": str(export_meta.get("agent_name") or "autocoderover"),
                 "outcome": outcome,
                 "patch_status": patch_status,
                 "matched_patch_categories": matched_patch_categories,
@@ -314,7 +352,9 @@ def build_overview_rows(
                 "relation_counts": dict(relation_counts),
                 "flagged_relations": flagged_relations,
                 "first_flagged_iteration": first_flagged_iteration,
-                "pull_request_url": pull_request_url_from_filename(filename),
+                "pull_request_url": (
+                    None if is_labeler_export else pull_request_url_from_filename(filename)
+                ),
             }
         )
 

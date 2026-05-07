@@ -13,11 +13,18 @@ JSON_DATA_DIR = PROJECT_ROOT / "data" / "json"
 ROOT = PROJECT_ROOT / "autocoderover_csv"
 LOGS_DIR = PROJECT_ROOT / "reconstructed_autocoderover"
 RESULTS_PATH = JSON_DATA_DIR / "results.json"
+LABELER_VIEWER_EXPORTS_PATH = JSON_DATA_DIR / "labeler_viewer_exports.json"
 
 ROUTE_OVERVIEW = "Overview"
 ROUTE_ANALYSIS = "Analysis"
 ROUTE_INSPECTOR = "Inspector"
 ROUTE_LABELING = "Labeling"
+
+APP_ROUTE_STATE_KEY = "relationship_viewer_route"
+DETAIL_FILENAME_STATE_KEY = "relationship_viewer_filename"
+OVERVIEW_NOTICE_STATE_KEY = "relationship_viewer_overview_notice"
+OVERVIEW_SELECTED_FILE_KEY = "relationship_viewer_overview_selected_file"
+TASK_FILE_SELECT_STATE_KEY = "relationship_viewer_task_file_select"
 
 DETAIL_PAGE_GRAPH = "graph"
 DETAIL_PAGE_INSPECTOR = "inspector"

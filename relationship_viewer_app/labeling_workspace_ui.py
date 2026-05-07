@@ -6,9 +6,15 @@ import pandas as pd
 import streamlit as st
 
 from relationship_viewer_app.constants import (
+    APP_ROUTE_STATE_KEY,
+    DETAIL_FILENAME_STATE_KEY,
     LABELER_STAGE_COMPLETE,
     LABELER_STAGE_INGEST,
+    OVERVIEW_NOTICE_STATE_KEY,
+    OVERVIEW_SELECTED_FILE_KEY,
     REL_SPECS,
+    ROUTE_OVERVIEW,
+    TASK_FILE_SELECT_STATE_KEY,
 )
 from relationship_viewer_app.labeling_common_ui import (
     render_labeling_header,
@@ -35,6 +41,7 @@ from relationship_viewer_app.trajectory_parser import (
     relation_label_options_for_family,
     short_preview,
     ui_label_options_for_family,
+    write_viewer_dataset_files,
 )
 from relationship_viewer_app.formatting import wrapped_log_block
 
@@ -127,6 +134,19 @@ def _trajectory_select(trajectories: list[ParsedTrajectory]) -> ParsedTrajectory
     return trajectory
 
 
+def _send_to_overview(trajectory: ParsedTrajectory, current_labels: dict[str, str]) -> None:
+    filename = write_viewer_dataset_files(trajectory, current_labels)
+    st.cache_data.clear()
+    st.session_state[OVERVIEW_SELECTED_FILE_KEY] = filename
+    st.session_state[TASK_FILE_SELECT_STATE_KEY] = filename
+    st.session_state[DETAIL_FILENAME_STATE_KEY] = filename
+    st.session_state[OVERVIEW_NOTICE_STATE_KEY] = (
+        f"{trajectory.task_id} was added to Overview as {filename}."
+    )
+    st.session_state[APP_ROUTE_STATE_KEY] = ROUTE_OVERVIEW
+    st.rerun()
+
+
 def render_workspace_page() -> None:
     trajectories = loaded_trajectories()
     if not trajectories:
@@ -207,7 +227,7 @@ def render_workspace_page() -> None:
         selected_candidate_label = st.selectbox("Inspect relationship", list(candidate_options))
         _render_candidate_detail(candidate_options[selected_candidate_label], current_labels)
 
-    export_col_a, export_col_b = st.columns(2)
+    export_col_a, export_col_b, export_col_c = st.columns(3)
     with export_col_a:
         st.download_button(
             "Download labels JSON",
@@ -224,3 +244,6 @@ def render_workspace_page() -> None:
             mime="application/zip",
             width="stretch",
         )
+    with export_col_c:
+        if st.button("Send to overview", type="primary", width="stretch"):
+            _send_to_overview(trajectory, current_labels)

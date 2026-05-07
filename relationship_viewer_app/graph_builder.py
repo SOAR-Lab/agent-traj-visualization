@@ -38,6 +38,8 @@ from relationship_viewer_app.node_ids import (
 def final_result_node_style(patch_status: str, base_size: int) -> tuple[str, str, int]:
     if patch_status == "RESOLVED":
         return "#2E7D32", "PASS", base_size + 10
+    if patch_status == "UNKNOWN":
+        return "#757575", "UNSCORED", base_size + 10
     return "#C62828", "FAIL", base_size + 10
 
 

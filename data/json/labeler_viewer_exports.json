@@ -1,0 +1,11 @@
+{
+  "runs": {
+    "astropy__astropy-12907.csv": {
+      "agent_name": "uploaded",
+      "scored": false,
+      "source_name": "astropy__astropy-12907/astropy__astropy-12907.traj",
+      "task_id": "astropy__astropy-12907"
+    }
+  },
+  "schema_version": 1
+}

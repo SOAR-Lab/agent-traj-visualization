@@ -11,11 +11,17 @@ from pathlib import Path
 from typing import Iterable
 
 from relationship_viewer_app.constants import (
+    ACTIONS_CATEGORIES_CAT_COL,
+    ACTIONS_CATEGORIES_FOLDER,
+    ACTIONS_CATEGORIES_ITER_COL,
+    LABELER_VIEWER_EXPORTS_PATH,
+    LOGS_DIR,
     PROJECT_ROOT,
     REL_LABEL_COL,
     REL_SPECS,
     RELATION_LABEL_OPTIONS,
     RELATION_LABEL_OPTIONS_BY_FAMILY,
+    ROOT,
 )
 from relationship_viewer_app.models import ParsedTrajectory, RelationCandidate, TrajectoryStep
 from relationship_viewer_app.node_ids import (
@@ -27,6 +33,7 @@ from relationship_viewer_app.node_ids import (
 )
 
 UNLABELED_RELATION_LABEL = "Unlabeled"
+VIEWER_EXPORT_CATEGORY = "Labeled trace"
 LOCAL_SWEAGENT_TRAJECTORY_DIR = PROJECT_ROOT / "sweagent_claude4_trajs"
 SUPPORTED_TRAJECTORY_SUFFIXES = {".traj", ".json", ".jsonl", ".log", ".txt"}
 
@@ -491,3 +498,134 @@ def relation_csv_zip_bytes(trajectory: ParsedTrajectory, labels: dict[str, str])
             labels_json_bytes(trajectory, labels),
         )
     return buffer.getvalue()
+
+
+def action_categories_csv_text(
+    trajectory: ParsedTrajectory,
+    *,
+    category: str = VIEWER_EXPORT_CATEGORY,
+) -> str:
+    buffer = io.StringIO()
+    writer = csv.DictWriter(
+        buffer,
+        fieldnames=[ACTIONS_CATEGORIES_ITER_COL, ACTIONS_CATEGORIES_CAT_COL],
+        lineterminator="\n",
+    )
+    writer.writeheader()
+    for step in sorted(trajectory.steps, key=lambda item: item.step_index):
+        writer.writerow(
+            {
+                ACTIONS_CATEGORIES_ITER_COL: step.step_index,
+                ACTIONS_CATEGORIES_CAT_COL: category,
+            }
+        )
+    return buffer.getvalue()
+
+
+def reconstructed_log_text(trajectory: ParsedTrajectory) -> str:
+    blocks = []
+    for step in sorted(trajectory.steps, key=lambda item: item.step_index):
+        blocks.append(
+            "\n".join(
+                [
+                    f"Iteration {step.step_index}",
+                    "",
+                    "Thought:",
+                    step.thought,
+                    "",
+                    "Action:",
+                    step.action,
+                    "",
+                    "Result:",
+                    step.result,
+                ]
+            )
+        )
+    return "\n\n".join(blocks).rstrip() + "\n"
+
+
+def safe_viewer_dataset_stem(task_id: str) -> str:
+    stem = re.sub(r'[<>:"/\\|?*\x00-\x1f]+', "-", coerce_text(task_id))
+    stem = re.sub(r"\s+", "-", stem).strip(".- ")
+    return stem[:120] or "labeled-trajectory"
+
+
+def _viewer_dataset_paths(filename: str) -> list[Path]:
+    return [
+        ROOT / ACTIONS_CATEGORIES_FOLDER / filename,
+        LOGS_DIR / Path(filename).with_suffix(".txt").name,
+        *[ROOT / family / filename for family in REL_SPECS],
+    ]
+
+
+def unique_viewer_dataset_filename(task_id: str) -> str:
+    base_stem = safe_viewer_dataset_stem(task_id)
+    candidate_stems = [base_stem, f"{base_stem}-labeled"]
+    candidate_stems.extend(f"{base_stem}-labeled-{index}" for index in range(2, 10_000))
+
+    for stem in candidate_stems:
+        filename = f"{stem}.csv"
+        if not any(path.exists() for path in _viewer_dataset_paths(filename)):
+            return filename
+
+    raise RuntimeError(f"Could not find an available filename for {task_id!r}.")
+
+
+def record_labeler_viewer_export(filename: str, trajectory: ParsedTrajectory) -> None:
+    LABELER_VIEWER_EXPORTS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    payload: dict[str, object] = {"runs": {}}
+    if LABELER_VIEWER_EXPORTS_PATH.exists():
+        try:
+            loaded = json.loads(LABELER_VIEWER_EXPORTS_PATH.read_text(encoding="utf-8"))
+            if isinstance(loaded, dict):
+                payload = loaded
+        except json.JSONDecodeError:
+            payload = {"runs": {}}
+
+    runs = payload.get("runs")
+    if not isinstance(runs, dict):
+        runs = {}
+    runs[filename] = {
+        "agent_name": "uploaded",
+        "scored": False,
+        "source_name": trajectory.source_name,
+        "task_id": trajectory.task_id,
+    }
+    payload["runs"] = runs
+    payload["schema_version"] = 1
+    LABELER_VIEWER_EXPORTS_PATH.write_text(
+        json.dumps(payload, indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+
+def write_viewer_dataset_files(
+    trajectory: ParsedTrajectory,
+    labels: dict[str, str],
+) -> str:
+    filename = unique_viewer_dataset_filename(trajectory.task_id)
+
+    action_path = ROOT / ACTIONS_CATEGORIES_FOLDER / filename
+    action_path.parent.mkdir(parents=True, exist_ok=True)
+    action_path.write_text(action_categories_csv_text(trajectory), encoding="utf-8")
+
+    log_path = LOGS_DIR / Path(filename).with_suffix(".txt").name
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    log_path.write_text(reconstructed_log_text(trajectory), encoding="utf-8")
+
+    candidates_by_family: dict[str, list[RelationCandidate]] = {
+        family: [] for family in REL_SPECS
+    }
+    for candidate in build_relation_candidates(trajectory):
+        candidates_by_family[candidate.family].append(candidate)
+
+    for family, candidates in candidates_by_family.items():
+        relation_path = ROOT / family / filename
+        relation_path.parent.mkdir(parents=True, exist_ok=True)
+        relation_path.write_text(
+            relation_csv_text(candidates, labels),
+            encoding="utf-8",
+        )
+
+    record_labeler_viewer_export(filename, trajectory)
+    return filename

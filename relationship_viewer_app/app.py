@@ -9,8 +9,12 @@ from relationship_viewer_app.constants import (
     ACTIONS_CATEGORIES_CAT_COL,
     ACTIONS_CATEGORIES_FOLDER,
     ACTIONS_CATEGORIES_ITER_COL,
+    APP_ROUTE_STATE_KEY,
     DETAIL_PAGE_GRAPH,
     DETAIL_PAGE_INSPECTOR,
+    DETAIL_FILENAME_STATE_KEY,
+    LABELER_VIEWER_EXPORTS_PATH,
+    OVERVIEW_SELECTED_FILE_KEY,
     REL_SPECS,
     RESULTS_PATH,
     ROOT,
@@ -28,6 +32,7 @@ from relationship_viewer_app.viewer_data import (
     get_patch_categories,
     list_task_files,
     load_categories,
+    load_labeler_export_metadata,
     load_relation_labels,
     load_results,
     parse_reconstructed_log,
@@ -43,7 +48,6 @@ from relationship_viewer_app.graph_builder import (
 from relationship_viewer_app.models import SidebarControls, ViewContext
 from relationship_viewer_app.layout_ui import (
     hide_sidebar_chrome,
-    OVERVIEW_SELECTED_FILE_KEY,
     render_app_header,
     render_graph_guide,
     render_inspector,
@@ -57,11 +61,9 @@ from relationship_viewer_app.layout_ui import (
     scroll_page_to_top,
 )
 
-APP_ROUTE_STATE_KEY = "relationship_viewer_route"
 INSPECTOR_SCROLL_TOP_STATE_KEY = "relationship_viewer_inspector_scroll_top"
 DETAIL_PAGE_STATE_KEY = "relationship_viewer_page"
 DETAIL_NODE_STATE_KEY = "relationship_viewer_selected_node"
-DETAIL_FILENAME_STATE_KEY = "relationship_viewer_filename"
 DETAIL_CONTROLS_STATE_KEY = "relationship_viewer_controls"
 PENDING_ANALYSIS_FILENAME_STATE_KEY = "relationship_viewer_pending_analysis_filename"
 
@@ -75,6 +77,9 @@ def _queue_analysis_filename(filename: str, *, clear_stale_node: bool = True) ->
 
 
 def _build_view_context(filename: str, controls: SidebarControls) -> ViewContext:
+    labeler_exports = load_labeler_export_metadata(LABELER_VIEWER_EXPORTS_PATH)
+    export_meta = labeler_exports.get(filename, {})
+    is_labeler_export = bool(export_meta)
     cat_df = load_categories(filename)
 
     max_iter = int(cat_df[ACTIONS_CATEGORIES_ITER_COL].max())
@@ -92,12 +97,18 @@ def _build_view_context(filename: str, controls: SidebarControls) -> ViewContext
     log_path = corresponding_log_path(filename)
     log_data = parse_reconstructed_log(log_path)
 
-    results_data = load_results(RESULTS_PATH)
-    task_id = Path(filename).stem
-    matched_patch_categories = get_patch_categories(task_id, results_data)
-    patch_status = derive_primary_patch_status(matched_patch_categories)
-    bug_report_url = bug_report_url_from_filename(filename)
-    pull_request_url = pull_request_url_from_filename(filename)
+    task_id = str(export_meta.get("task_id") or Path(filename).stem)
+    if is_labeler_export:
+        matched_patch_categories = []
+        patch_status = "UNKNOWN"
+        bug_report_url = None
+        pull_request_url = None
+    else:
+        results_data = load_results(RESULTS_PATH)
+        matched_patch_categories = get_patch_categories(task_id, results_data)
+        patch_status = derive_primary_patch_status(matched_patch_categories)
+        bug_report_url = bug_report_url_from_filename(filename)
+        pull_request_url = pull_request_url_from_filename(filename)
 
     relation_frames = {
         family: load_relation_labels(family, filename)

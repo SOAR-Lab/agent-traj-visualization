@@ -6,6 +6,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 from relationship_viewer_app.constants import (
+    TASK_FILE_SELECT_STATE_KEY,
     CATEGORY_COLOR,
     EDGE_FAMILY_OPTIONS,
     ROUTE_ANALYSIS,
@@ -18,12 +19,11 @@ from relationship_viewer_app.inspector_ui import render_inspector
 from relationship_viewer_app.iteration_ui import render_iteration_context_panel
 from relationship_viewer_app.labeling_router import render_labeling_page
 from relationship_viewer_app.models import SidebarControls, StaticRelationRecord
-from relationship_viewer_app.overview_ui import OVERVIEW_SELECTED_FILE_KEY, render_overview_page
+from relationship_viewer_app.overview_ui import render_overview_page
 from relationship_viewer_app.formatting import format_task_name
 
 INSPECTOR_PAGE_TOGGLE_KEY = "relationship_viewer_inspector_separate_page"
 INSPECTOR_PAGE_TOGGLE_QUERY_KEY = "inspector_page"
-TASK_FILE_SELECT_STATE_KEY = "relationship_viewer_task_file_select"
 
 
 def render_app_header(
@@ -190,6 +190,8 @@ def format_patch_status_label(primary_status: str) -> str:
         "HAS LOGS": "HAS LOGS",
         "UNKNOWN": "UNKNOWN",
     }
+    if primary_status == "UNKNOWN":
+        return "UNSCORED"
     shown = pretty.get(primary_status, primary_status)
     if primary_status == "RESOLVED":
         return f"PASS ({shown})"
