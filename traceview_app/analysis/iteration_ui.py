@@ -5,7 +5,7 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
-from traceview_app.models import IterationRecord
+from traceview_app.shared.models import IterationRecord
 
 
 def _format_iteration_files(files: list[str], limit: int = 2) -> str:

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from traceview_app.constants import (
+from traceview_app.shared.constants import (
     ACTION_LABEL_OPTIONS,
     RELATION_LABEL_OPTIONS,
     RELATION_LABEL_OPTIONS_BY_FAMILY,

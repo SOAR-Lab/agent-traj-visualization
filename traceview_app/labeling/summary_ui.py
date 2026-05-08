@@ -7,15 +7,15 @@ from collections import defaultdict
 import pandas as pd
 import streamlit as st
 
-from traceview_app.constants import (
+from traceview_app.shared.constants import (
     BAD_RELS,
     LABELER_STAGE_INGEST,
     LABELER_STAGE_WORKSPACE,
     LOOPISH_RELS,
     NOINF_RELS,
 )
-from traceview_app.labeling_common_ui import render_labeling_header
-from traceview_app.labeling_state import (
+from traceview_app.labeling.common_ui import render_labeling_header
+from traceview_app.labeling.state import (
     LABELER_STAGE_STATE_KEY,
     LABELER_WORKSPACE_TOAST_STATE_KEY,
     active_source_meta,
@@ -24,8 +24,8 @@ from traceview_app.labeling_state import (
     reset_annotation_flow,
     selected_trajectory,
 )
-from traceview_app.models import ParsedTrajectory, RelationCandidate
-from traceview_app.trajectory_parser import (
+from traceview_app.shared.models import ParsedTrajectory, RelationCandidate
+from traceview_app.trajectory import (
     UNLABELED_RELATION_LABEL,
     label_for_candidate,
 )

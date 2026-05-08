@@ -5,10 +5,10 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
-from traceview_app.constants import BAD_RELS, LOOPISH_RELS
-from traceview_app.iteration_context import extract_file_mentions, summarize_action
-from traceview_app.models import EdgeRecord, IterationRecord, SidebarControls
-from traceview_app.node_ids import (
+from traceview_app.shared.constants import BAD_RELS, LOOPISH_RELS
+from traceview_app.analysis.iteration_context import extract_file_mentions, summarize_action
+from traceview_app.shared.models import EdgeRecord, IterationRecord, SidebarControls
+from traceview_app.shared.node_ids import (
     ACTION_NODE_KIND,
     RESULT_NODE_KIND,
     THOUGHT_NODE_KIND,
@@ -16,7 +16,7 @@ from traceview_app.node_ids import (
     parse_iteration_node_id,
     parse_step_node_id,
 )
-from traceview_app.formatting import format_step_range, wrapped_log_block
+from traceview_app.shared.formatting import format_step_range, wrapped_log_block
 
 
 def _pretty_node_id(node_id: str) -> str:

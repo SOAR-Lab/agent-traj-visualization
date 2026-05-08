@@ -7,15 +7,15 @@ import time
 import pandas as pd
 import streamlit as st
 
-from traceview_app.constants import (
+from traceview_app.shared.constants import (
     LABELER_STAGE_COMPLETE,
     LABELER_STAGE_INGEST,
 )
-from traceview_app.labeling_common_ui import (
+from traceview_app.labeling.common_ui import (
     render_labeling_header,
     render_parser_warnings,
 )
-from traceview_app.labeling_state import (
+from traceview_app.labeling.state import (
     LABELER_ERRORS_STATE_KEY,
     LABELER_PASTE_STATE_KEY,
     LABELER_PROGRESS_ADVANCED_STATE_KEY,
@@ -30,7 +30,7 @@ from traceview_app.labeling_state import (
     start_annotation_from_local_folder,
     start_annotation_from_sources,
 )
-from traceview_app.trajectory_parser import LOCAL_SWEAGENT_TRAJECTORY_DIR
+from traceview_app.trajectory import LOCAL_SWEAGENT_TRAJECTORY_DIR
 
 
 def _render_ingest_dropzone() -> tuple[list[tuple[str, bytes]], bool] | None:

@@ -2,13 +2,13 @@
 
 from pathlib import Path
 
-from traceview_app.node_ids import (
+from traceview_app.shared.node_ids import (
     ACTION_NODE_KIND,
     RESULT_NODE_KIND,
     THOUGHT_NODE_KIND,
 )
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 JSON_DATA_DIR = PROJECT_ROOT / "data" / "json"
 ROOT = PROJECT_ROOT / "autocoderover_csv"
 LOGS_DIR = PROJECT_ROOT / "reconstructed_autocoderover"

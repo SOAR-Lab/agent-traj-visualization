@@ -12,7 +12,7 @@ from urllib.request import Request, urlopen
 import pandas as pd
 import streamlit as st
 
-from traceview_app.constants import (
+from traceview_app.shared.constants import (
     ACTIONS_CATEGORIES_CAT_COL,
     ACTIONS_CATEGORIES_FOLDER,
     ACTIONS_CATEGORIES_ITER_COL,
@@ -25,7 +25,7 @@ from traceview_app.constants import (
     REL_SPECS,
     ROOT,
 )
-from traceview_app.models import OverviewRow
+from traceview_app.shared.models import OverviewRow
 
 
 def normalize_rel(value: object) -> str:

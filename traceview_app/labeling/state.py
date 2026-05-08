@@ -7,13 +7,13 @@ from dataclasses import dataclass
 
 import streamlit as st
 
-from traceview_app.constants import (
+from traceview_app.shared.constants import (
     BAD_RELS,
     LABELER_STAGE_ANNOTATING,
     LABELER_STAGE_INGEST,
 )
-from traceview_app.models import ParsedTrajectory, RelationCandidate
-from traceview_app.trajectory_parser import (
+from traceview_app.shared.models import ParsedTrajectory, RelationCandidate
+from traceview_app.trajectory import (
     LOCAL_SWEAGENT_TRAJECTORY_DIR,
     UNLABELED_RELATION_LABEL,
     build_relation_candidates,

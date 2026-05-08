@@ -5,9 +5,9 @@ from __future__ import annotations
 import re
 from collections import Counter
 
-from traceview_app.constants import BAD_RELS, LOOPISH_RELS
-from traceview_app.viewer_data import shorten
-from traceview_app.models import EdgeRecord, IterationRecord
+from traceview_app.shared.constants import BAD_RELS, LOOPISH_RELS
+from traceview_app.overview.data import shorten
+from traceview_app.shared.models import EdgeRecord, IterationRecord
 
 CALL_RE = re.compile(r"\b([A-Za-z_]\w*)\((.*?)\)")
 FILE_TAG_RE = re.compile(r"<file>(.*?)</file>")

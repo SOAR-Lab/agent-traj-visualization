@@ -5,13 +5,13 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
-from traceview_app.constants import (
+from traceview_app.shared.constants import (
     OVERVIEW_NOTICE_STATE_KEY,
     OVERVIEW_SELECTED_FILE_KEY,
 )
-from traceview_app.viewer_data import bug_report_url_from_filename
-from traceview_app.models import OverviewRow
-from traceview_app.formatting import format_task_name
+from traceview_app.overview.data import bug_report_url_from_filename
+from traceview_app.shared.models import OverviewRow
+from traceview_app.shared.formatting import format_task_name
 
 OVERVIEW_TABLE_HEIGHT = 930
 
