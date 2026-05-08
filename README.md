@@ -9,6 +9,22 @@ TraceView is a Streamlit application for visualizing step-by-step agent trajecto
 
 The result is an interactive trace viewer for studying how an agent moves through a software engineering task, where it stays aligned, where it loops, and where it diverges or breaks down.
 
+## Quick Start
+
+If you only need the shortest path:
+
+```powershell
+uv sync
+uv run streamlit run traceview.py
+```
+
+Then:
+
+1. pick a task from the sidebar
+2. start in `Detailed` mode
+3. click a node to inspect its text and attached relations
+4. switch to `Iteration` mode to see the compressed phase-level trajectory
+
 ## Current Status
 
 The active application is:
@@ -556,19 +572,3 @@ That behavior is controlled by the sidebar toggle:
 - `Open inspector on separate page`
 
 The current app persists that preference so returning from the inspector should preserve the toggle state.
-
-## Quick Start Summary
-
-If you only need the shortest path:
-
-```powershell
-uv sync
-uv run streamlit run traceview.py
-```
-
-Then:
-
-1. pick a task from the sidebar
-2. start in `Detailed` mode
-3. click a node to inspect its text and attached relations
-4. switch to `Iteration` mode to see the compressed phase-level trajectory
