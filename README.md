@@ -1,29 +1,29 @@
-# Relationship Viewer
+# TraceView
 
-This repository contains a Streamlit application for visualizing step-by-step agent trajectories as directed graphs over `Thought`, `Action`, and `Result` nodes. The current app is focused on AutoCodeRover-style traces and lets you inspect:
+TraceView is a Streamlit application for visualizing step-by-step agent trajectories as directed graphs over `Thought`, `Action`, and `Result` nodes. The app supports AutoCodeRover-style traces and uploaded user traces, and lets you inspect:
 
 - step-level action categories
 - labeled semantic relations between trajectory elements
 - reconstructed trajectory text for each step
 - final patch outcome metadata
 
-The result is an interactive viewer for studying how an agent moves through a software engineering task, where it stays aligned, where it loops, and where it diverges or breaks down.
+The result is an interactive trace viewer for studying how an agent moves through a software engineering task, where it stays aligned, where it loops, and where it diverges or breaks down.
 
 ## Current Status
 
 The active application is:
 
-- `relationship_viewer.py`
+- `traceview.py`
 
 That file is only a thin Streamlit entrypoint. The actual implementation lives under:
 
-- `relationship_viewer_app/`
+- `traceview_app/`
 
 Older Python versions of the project were moved into:
 
 - `archive/python_prototypes/`
 
-The current app should be treated as the canonical version of the repo.
+TraceView should be treated as the canonical version of the repo.
 
 ## What The App Does
 
@@ -73,13 +73,13 @@ You can click any node to inspect the underlying text and the labeled relations 
 
 ```text
 agent-traj-visualization/
-|- relationship_viewer.py
+|- traceview.py
 |- README.md
 |- pyproject.toml
 |- uv.lock
 |- schema.txt
 |- llm_label_demo.ipynb
-|- relationship_viewer_app/
+|- traceview_app/
 |  |- app.py
 |  |- constants.py
 |  |- formatting.py
@@ -122,15 +122,15 @@ agent-traj-visualization/
 
 The current Streamlit app primarily depends on:
 
-- `relationship_viewer.py`
-- `relationship_viewer_app/`
+- `traceview.py`
+- `traceview_app/`
 - `autocoderover_csv/`
 - `reconstructed_autocoderover/`
 - `data/json/results.json`
 
-The other JSON files in `data/json/` are legacy artifacts from earlier prototypes and are not used by the current relationship viewer.
+The other JSON files in `data/json/` are legacy artifacts from earlier prototypes and are not used by TraceView.
 
-Large raw trajectory folders from earlier experiments are intentionally not included in this checkout. In particular, the archived AXE and SWE-agent prototypes refer to local folders named `AXE_logs/` and `sweagent_claude4_trajs/`, but those folders were removed from the repo because they were too large. Restore those folders locally only if you need to run the archived prototype scripts; the current `relationship_viewer.py` app does not require them.
+Large raw trajectory folders from earlier experiments are intentionally not included in this checkout. In particular, the archived AXE and SWE-agent prototypes refer to local folders named `AXE_logs/` and `sweagent_claude4_trajs/`, but those folders were removed from the repo because they were too large. Restore those folders locally only if you need to run the archived prototype scripts; TraceView does not require them.
 
 ## Environment And Setup
 
@@ -161,7 +161,7 @@ uv sync
 Then run the app with:
 
 ```powershell
-uv run streamlit run relationship_viewer.py
+uv run streamlit run traceview.py
 ```
 
 ### Install Without `uv`
@@ -177,7 +177,7 @@ pip install dotenv google-genai ipykernel jsonlines pandas pandas-stubs plotly s
 Then run:
 
 ```powershell
-streamlit run relationship_viewer.py
+streamlit run traceview.py
 ```
 
 ## Running The App
@@ -185,13 +185,13 @@ streamlit run relationship_viewer.py
 From the project root:
 
 ```powershell
-streamlit run relationship_viewer.py
+streamlit run traceview.py
 ```
 
 If you already have a local virtual environment in this checkout:
 
 ```powershell
-.venv\Scripts\streamlit.exe run relationship_viewer.py
+.venv\Scripts\streamlit.exe run traceview.py
 ```
 
 After launch, the app opens a browser page where you can:
@@ -563,7 +563,7 @@ If you only need the shortest path:
 
 ```powershell
 uv sync
-uv run streamlit run relationship_viewer.py
+uv run streamlit run traceview.py
 ```
 
 Then:

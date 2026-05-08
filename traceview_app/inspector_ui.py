@@ -5,10 +5,10 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
-from relationship_viewer_app.constants import BAD_RELS, LOOPISH_RELS
-from relationship_viewer_app.iteration_context import extract_file_mentions, summarize_action
-from relationship_viewer_app.models import EdgeRecord, IterationRecord, SidebarControls
-from relationship_viewer_app.node_ids import (
+from traceview_app.constants import BAD_RELS, LOOPISH_RELS
+from traceview_app.iteration_context import extract_file_mentions, summarize_action
+from traceview_app.models import EdgeRecord, IterationRecord, SidebarControls
+from traceview_app.node_ids import (
     ACTION_NODE_KIND,
     RESULT_NODE_KIND,
     THOUGHT_NODE_KIND,
@@ -16,7 +16,7 @@ from relationship_viewer_app.node_ids import (
     parse_iteration_node_id,
     parse_step_node_id,
 )
-from relationship_viewer_app.formatting import format_step_range, wrapped_log_block
+from traceview_app.formatting import format_step_range, wrapped_log_block
 
 
 def _pretty_node_id(node_id: str) -> str:

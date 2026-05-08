@@ -12,7 +12,7 @@ from urllib.request import Request, urlopen
 import pandas as pd
 import streamlit as st
 
-from relationship_viewer_app.constants import (
+from traceview_app.constants import (
     ACTIONS_CATEGORIES_CAT_COL,
     ACTIONS_CATEGORIES_FOLDER,
     ACTIONS_CATEGORIES_ITER_COL,
@@ -25,7 +25,7 @@ from relationship_viewer_app.constants import (
     REL_SPECS,
     ROOT,
 )
-from relationship_viewer_app.models import OverviewRow
+from traceview_app.models import OverviewRow
 
 
 def normalize_rel(value: object) -> str:
@@ -244,7 +244,7 @@ def bug_report_url_from_filename(filename: str) -> str | None:
         f"https://api.github.com/repos/{owner}/{repo}/pulls/{pull_number}",
         headers={
             "Accept": "application/vnd.github+json",
-            "User-Agent": "agent-traj-visualization",
+            "User-Agent": "TraceView",
         },
     )
     try:

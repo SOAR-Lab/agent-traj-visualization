@@ -1,11 +1,11 @@
-"""Application entrypoint for the relationship viewer."""
+"""Application entrypoint for TraceView."""
 
 from pathlib import Path
 
 import streamlit as st
 from streamlit_agraph import Config, agraph
 
-from relationship_viewer_app.constants import (
+from traceview_app.constants import (
     ACTIONS_CATEGORIES_CAT_COL,
     ACTIONS_CATEGORIES_FOLDER,
     ACTIONS_CATEGORIES_ITER_COL,
@@ -23,8 +23,8 @@ from relationship_viewer_app.constants import (
     ROUTE_LABELING,
     ROUTE_OVERVIEW,
 )
-from relationship_viewer_app.iteration_context import build_iteration_contexts
-from relationship_viewer_app.viewer_data import (
+from traceview_app.iteration_context import build_iteration_contexts
+from traceview_app.viewer_data import (
     build_overview_rows,
     bug_report_url_from_filename,
     corresponding_log_path,
@@ -38,15 +38,15 @@ from relationship_viewer_app.viewer_data import (
     parse_reconstructed_log,
     pull_request_url_from_filename,
 )
-from relationship_viewer_app.graph_builder import (
+from traceview_app.graph_builder import (
     build_edge_records,
     build_graph_elements,
     build_iterations,
     collect_static_relation_records,
     step_to_iteration_map,
 )
-from relationship_viewer_app.models import SidebarControls, ViewContext
-from relationship_viewer_app.layout_ui import (
+from traceview_app.models import SidebarControls, ViewContext
+from traceview_app.layout_ui import (
     hide_sidebar_chrome,
     render_app_header,
     render_graph_guide,
@@ -61,11 +61,11 @@ from relationship_viewer_app.layout_ui import (
     scroll_page_to_top,
 )
 
-INSPECTOR_SCROLL_TOP_STATE_KEY = "relationship_viewer_inspector_scroll_top"
-DETAIL_PAGE_STATE_KEY = "relationship_viewer_page"
-DETAIL_NODE_STATE_KEY = "relationship_viewer_selected_node"
-DETAIL_CONTROLS_STATE_KEY = "relationship_viewer_controls"
-PENDING_ANALYSIS_FILENAME_STATE_KEY = "relationship_viewer_pending_analysis_filename"
+INSPECTOR_SCROLL_TOP_STATE_KEY = "traceview_inspector_scroll_top"
+DETAIL_PAGE_STATE_KEY = "traceview_page"
+DETAIL_NODE_STATE_KEY = "traceview_selected_node"
+DETAIL_CONTROLS_STATE_KEY = "traceview_controls"
+PENDING_ANALYSIS_FILENAME_STATE_KEY = "traceview_pending_analysis_filename"
 
 
 def _queue_analysis_filename(filename: str, *, clear_stale_node: bool = True) -> None:
@@ -359,7 +359,7 @@ def _render_analysis_route(
 
 
 def main() -> None:
-    st.set_page_config(page_title="Relationship Viewer", layout="wide")
+    st.set_page_config(page_title="TraceView", layout="wide")
 
     detail_page = st.session_state.get(DETAIL_PAGE_STATE_KEY, DETAIL_PAGE_GRAPH)
     detail_node_id = st.session_state.get(DETAIL_NODE_STATE_KEY)

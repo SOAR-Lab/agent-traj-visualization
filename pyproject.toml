@@ -1,7 +1,7 @@
 [project]
-name = "log-streamlit-demo"
+name = "traceview"
 version = "0.1.0"
-description = "Add your description here"
+description = "TraceView visualizes and labels step-by-step agent trajectories."
 requires-python = ">=3.14"
 dependencies = [
     "dotenv>=0.9.9",

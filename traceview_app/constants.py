@@ -1,8 +1,8 @@
-"""Shared constants and paths for the relationship viewer."""
+"""Shared constants and paths for TraceView."""
 
 from pathlib import Path
 
-from relationship_viewer_app.node_ids import (
+from traceview_app.node_ids import (
     ACTION_NODE_KIND,
     RESULT_NODE_KIND,
     THOUGHT_NODE_KIND,
@@ -20,11 +20,11 @@ ROUTE_ANALYSIS = "Analysis"
 ROUTE_INSPECTOR = "Inspector"
 ROUTE_LABELING = "Labeling"
 
-APP_ROUTE_STATE_KEY = "relationship_viewer_route"
-DETAIL_FILENAME_STATE_KEY = "relationship_viewer_filename"
-OVERVIEW_NOTICE_STATE_KEY = "relationship_viewer_overview_notice"
-OVERVIEW_SELECTED_FILE_KEY = "relationship_viewer_overview_selected_file"
-TASK_FILE_SELECT_STATE_KEY = "relationship_viewer_task_file_select"
+APP_ROUTE_STATE_KEY = "traceview_route"
+DETAIL_FILENAME_STATE_KEY = "traceview_filename"
+OVERVIEW_NOTICE_STATE_KEY = "traceview_overview_notice"
+OVERVIEW_SELECTED_FILE_KEY = "traceview_overview_selected_file"
+TASK_FILE_SELECT_STATE_KEY = "traceview_task_file_select"
 
 DETAIL_PAGE_GRAPH = "graph"
 DETAIL_PAGE_INSPECTOR = "inspector"

@@ -10,7 +10,7 @@ import zipfile
 from pathlib import Path
 from typing import Iterable
 
-from relationship_viewer_app.constants import (
+from traceview_app.constants import (
     ACTIONS_CATEGORIES_CAT_COL,
     ACTIONS_CATEGORIES_FOLDER,
     ACTIONS_CATEGORIES_ITER_COL,
@@ -23,8 +23,8 @@ from relationship_viewer_app.constants import (
     RELATION_LABEL_OPTIONS_BY_FAMILY,
     ROOT,
 )
-from relationship_viewer_app.models import ParsedTrajectory, RelationCandidate, TrajectoryStep
-from relationship_viewer_app.node_ids import (
+from traceview_app.models import ParsedTrajectory, RelationCandidate, TrajectoryStep
+from traceview_app.node_ids import (
     ACTION_NODE_KIND,
     RESULT_NODE_KIND,
     THOUGHT_NODE_KIND,

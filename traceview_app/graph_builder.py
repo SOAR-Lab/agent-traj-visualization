@@ -1,11 +1,11 @@
-"""Graph construction helpers for the relationship viewer."""
+"""Graph construction helpers for TraceView."""
 
 from __future__ import annotations
 
 import pandas as pd
 from streamlit_agraph import Edge, Node
 
-from relationship_viewer_app.constants import (
+from traceview_app.constants import (
     ACTIONS_CATEGORIES_CAT_COL,
     ACTIONS_CATEGORIES_ITER_COL,
     BAD_RELS,
@@ -18,15 +18,15 @@ from relationship_viewer_app.constants import (
     RESULT_COLOR,
     THOUGHT_COLOR,
 )
-from relationship_viewer_app.viewer_data import category_color, normalize_rel, shorten
-from relationship_viewer_app.models import (
+from traceview_app.viewer_data import category_color, normalize_rel, shorten
+from traceview_app.models import (
     EdgeRecord,
     IterationEdgeRecord,
     IterationRecord,
     SidebarControls,
     StaticRelationRecord,
 )
-from relationship_viewer_app.node_ids import (
+from traceview_app.node_ids import (
     ACTION_NODE_KIND,
     RESULT_NODE_KIND,
     THOUGHT_NODE_KIND,

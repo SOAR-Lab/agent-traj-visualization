@@ -4,22 +4,22 @@ from __future__ import annotations
 
 import streamlit as st
 
-from relationship_viewer_app.constants import (
+from traceview_app.constants import (
     LABELER_STAGE_ANNOTATING,
     LABELER_STAGE_COMPLETE,
     LABELER_STAGE_INGEST,
     LABELER_STAGE_WORKSPACE,
 )
-from relationship_viewer_app.labeling_ingest_ui import (
+from traceview_app.labeling_ingest_ui import (
     render_annotating_screen,
     render_ingest_screen,
 )
-from relationship_viewer_app.labeling_state import (
+from traceview_app.labeling_state import (
     LABELER_PASTE_STATE_KEY,
     LABELER_STAGE_STATE_KEY,
 )
-from relationship_viewer_app.labeling_summary_ui import render_summary_screen
-from relationship_viewer_app.labeling_workspace_ui import render_workspace_page
+from traceview_app.labeling_summary_ui import render_summary_screen
+from traceview_app.labeling_workspace_ui import render_workspace_page
 
 
 def render_labeling_page() -> None:

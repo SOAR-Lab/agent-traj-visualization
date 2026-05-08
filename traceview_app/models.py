@@ -1,4 +1,4 @@
-"""Lightweight data structures for the relationship viewer."""
+"""Lightweight data structures for TraceView."""
 
 from dataclasses import dataclass
 from typing import Any, NotRequired, TypedDict

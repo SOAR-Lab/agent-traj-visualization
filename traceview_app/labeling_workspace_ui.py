@@ -5,7 +5,7 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
-from relationship_viewer_app.constants import (
+from traceview_app.constants import (
     APP_ROUTE_STATE_KEY,
     DETAIL_FILENAME_STATE_KEY,
     LABELER_STAGE_COMPLETE,
@@ -16,12 +16,13 @@ from relationship_viewer_app.constants import (
     ROUTE_OVERVIEW,
     TASK_FILE_SELECT_STATE_KEY,
 )
-from relationship_viewer_app.labeling_common_ui import (
+from traceview_app.labeling_common_ui import (
     render_labeling_header,
     render_labeling_notice,
     render_parser_warnings,
+    render_relationship_label_legend,
 )
-from relationship_viewer_app.labeling_state import (
+from traceview_app.labeling_state import (
     LABELER_ERRORS_STATE_KEY,
     LABELER_SELECTED_TRAJECTORY_STATE_KEY,
     LABELER_STAGE_STATE_KEY,
@@ -30,8 +31,8 @@ from relationship_viewer_app.labeling_state import (
     labels,
     loaded_trajectories,
 )
-from relationship_viewer_app.models import ParsedTrajectory, RelationCandidate
-from relationship_viewer_app.trajectory_parser import (
+from traceview_app.models import ParsedTrajectory, RelationCandidate
+from traceview_app.trajectory_parser import (
     UNLABELED_RELATION_LABEL,
     build_relation_candidates,
     family_display_name,
@@ -43,7 +44,7 @@ from relationship_viewer_app.trajectory_parser import (
     ui_label_options_for_family,
     write_viewer_dataset_files,
 )
-from relationship_viewer_app.formatting import wrapped_log_block
+from traceview_app.formatting import wrapped_log_block
 
 LABELER_EDITOR_VERSION = "v4"
 
@@ -200,6 +201,7 @@ def render_workspace_page() -> None:
         "Only the `Label` column is editable. Allowed labels: "
         + ", ".join(relation_label_options_for_family(selected_family))
     )
+    render_relationship_label_legend()
     candidates_by_key = {candidate.key: candidate for candidate in family_candidates}
     edited_rows = st.data_editor(
         _candidate_rows(family_candidates, current_labels),

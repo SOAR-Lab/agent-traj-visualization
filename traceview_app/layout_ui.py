@@ -5,7 +5,7 @@ from __future__ import annotations
 import streamlit as st
 import streamlit.components.v1 as components
 
-from relationship_viewer_app.constants import (
+from traceview_app.constants import (
     TASK_FILE_SELECT_STATE_KEY,
     CATEGORY_COLOR,
     EDGE_FAMILY_OPTIONS,
@@ -15,14 +15,14 @@ from relationship_viewer_app.constants import (
     ROUTE_OVERVIEW,
     STRUCTURAL_EDGE_OPTIONS,
 )
-from relationship_viewer_app.inspector_ui import render_inspector
-from relationship_viewer_app.iteration_ui import render_iteration_context_panel
-from relationship_viewer_app.labeling_router import render_labeling_page
-from relationship_viewer_app.models import SidebarControls, StaticRelationRecord
-from relationship_viewer_app.overview_ui import render_overview_page
-from relationship_viewer_app.formatting import format_task_name
+from traceview_app.inspector_ui import render_inspector
+from traceview_app.iteration_ui import render_iteration_context_panel
+from traceview_app.labeling_router import render_labeling_page
+from traceview_app.models import SidebarControls, StaticRelationRecord
+from traceview_app.overview_ui import render_overview_page
+from traceview_app.formatting import format_task_name
 
-INSPECTOR_PAGE_TOGGLE_KEY = "relationship_viewer_inspector_separate_page"
+INSPECTOR_PAGE_TOGGLE_KEY = "traceview_inspector_separate_page"
 INSPECTOR_PAGE_TOGGLE_QUERY_KEY = "inspector_page"
 
 
@@ -33,7 +33,7 @@ def render_app_header(
 ) -> tuple[str, bool]:
     with st.container(horizontal=True, vertical_alignment="center"):
         with st.container():
-            st.title("Inspector" if current_route == ROUTE_INSPECTOR else "Relationship Viewer")
+            st.title("TraceView Inspector" if current_route == ROUTE_INSPECTOR else "TraceView")
             if current_route == ROUTE_INSPECTOR and selected_task_id:
                 st.caption(selected_task_id)
         st.space("stretch")
