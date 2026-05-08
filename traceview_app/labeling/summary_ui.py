@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-from collections import defaultdict
+from collections import Counter, defaultdict
 
 import pandas as pd
 import streamlit as st
 
 from traceview_app.shared.constants import (
+    ACTION_LABEL_OPTIONS,
     BAD_RELS,
     LABELER_STAGE_INGEST,
     LABELER_STAGE_WORKSPACE,
@@ -20,32 +21,56 @@ from traceview_app.labeling.state import (
     LABELER_WORKSPACE_TOAST_STATE_KEY,
     active_source_meta,
     annotation_stats,
+    action_labels,
     labels,
     reset_annotation_flow,
     selected_trajectory,
 )
 from traceview_app.shared.models import ParsedTrajectory, RelationCandidate
 from traceview_app.trajectory import (
+    UNLABELED_ACTION_LABEL,
     UNLABELED_RELATION_LABEL,
+    action_label_for_step,
     label_for_candidate,
+    short_preview,
 )
 
+BEHAVIOR_STATUS_ORDER = ("bad", "loop-ish", "no influence", "labeled", "unlabeled")
 
-def _label_count_rows(stats_candidate_count: int, label_counts: dict[str, int]) -> pd.DataFrame:
-    if not label_counts:
-        return pd.DataFrame(
-            [{"Relationship": "unlabeled candidates", "Count": stats_candidate_count}]
-        )
 
+def _with_share(
+    rows: list[dict[str, object]],
+    *,
+    count_column: str,
+    total: int,
+) -> pd.DataFrame:
+    for row in rows:
+        count = int(row[count_column])
+        row["Share"] = round((count / total) * 100) if total else 0
+    return pd.DataFrame(rows)
+
+
+def _relationship_count_rows(
+    stats_candidate_count: int,
+    label_counts: dict[str, int],
+) -> pd.DataFrame:
+    unlabeled_count = stats_candidate_count - sum(label_counts.values())
     rows = [
+        {"Relationship": UNLABELED_RELATION_LABEL, "Count": unlabeled_count}
+    ]
+    rows.extend(
         {"Relationship": label, "Count": count}
         for label, count in sorted(
             label_counts.items(),
             key=lambda item: item[1],
             reverse=True,
         )
-    ]
-    return pd.DataFrame(rows)
+    )
+    return _with_share(
+        [row for row in rows if int(row["Count"]) > 0],
+        count_column="Count",
+        total=stats_candidate_count,
+    )
 
 
 def _bad_relationship_rows(bad_pairs: list[tuple[RelationCandidate, str]]) -> pd.DataFrame:
@@ -96,14 +121,150 @@ def _behavior_rows(
         )
 
     detail_df = pd.DataFrame(rows)
-    count_df = (
-        detail_df["Status"]
-        .value_counts()
-        .rename_axis("Status")
-        .reset_index(name="Steps")
-        .sort_values("Status")
+    status_counts = Counter(detail_df["Status"])
+    count_df = _with_share(
+        [
+            {"Status": status, "Steps": status_counts[status]}
+            for status in BEHAVIOR_STATUS_ORDER
+            if status_counts[status]
+        ],
+        count_column="Steps",
+        total=len(detail_df),
     )
     return count_df, detail_df
+
+
+def _action_category_rows(
+    trajectory: ParsedTrajectory,
+    current_action_labels: dict[str, str],
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    rows = []
+    for step in sorted(trajectory.steps, key=lambda item: item.step_index):
+        category = action_label_for_step(
+            trajectory,
+            step.step_index,
+            current_action_labels,
+        )
+        rows.append(
+            {
+                "Iteration": step.step_index,
+                "Category": category,
+                "Action": short_preview(step.action, limit=180),
+            }
+        )
+
+    detail_df = pd.DataFrame(rows)
+    if detail_df.empty:
+        return pd.DataFrame(columns=["Category", "Steps"]), detail_df
+
+    count_order = (UNLABELED_ACTION_LABEL, *ACTION_LABEL_OPTIONS)
+    category_counts = Counter(detail_df["Category"])
+    count_df = pd.DataFrame(
+        [
+            {"Category": category, "Steps": category_counts[category]}
+            for category in count_order
+            if category_counts[category]
+        ]
+    )
+    return _with_share(
+        count_df.to_dict("records"),
+        count_column="Steps",
+        total=len(detail_df),
+    ), detail_df
+
+
+def _format_ratio(done: int, total: int) -> str:
+    return f"{done} of {total}" if total else "0 of 0"
+
+
+def _percent(done: int, total: int) -> int:
+    return round((done / total) * 100) if total else 0
+
+
+def _render_summary_actions(*, suffix: str) -> None:
+    action_col, reset_col = st.columns([0.58, 0.42])
+    with action_col:
+        if st.button(
+            "Open in single-run workspace",
+            type="primary",
+            width="stretch",
+            key=f"summary_open_workspace_{suffix}",
+        ):
+            st.session_state[LABELER_STAGE_STATE_KEY] = LABELER_STAGE_WORKSPACE
+            st.session_state[LABELER_WORKSPACE_TOAST_STATE_KEY] = True
+            st.rerun()
+    with reset_col:
+        if st.button(
+            "Re-annotate with different settings",
+            width="stretch",
+            key=f"summary_reannotate_{suffix}",
+        ):
+            reset_annotation_flow()
+            st.rerun()
+
+
+def _render_distribution_table(
+    df: pd.DataFrame,
+    *,
+    label_column: str,
+    count_column: str,
+    empty_message: str,
+) -> None:
+    if df.empty:
+        st.info(empty_message)
+        return
+
+    st.dataframe(
+        df,
+        hide_index=True,
+        width="stretch",
+        column_config={
+            label_column: st.column_config.TextColumn(label_column, width="medium"),
+            count_column: st.column_config.NumberColumn(count_column, width="small"),
+            "Share": st.column_config.ProgressColumn(
+                "Share",
+                min_value=0,
+                max_value=100,
+                format="%d%%",
+                width="medium",
+            ),
+        },
+    )
+
+
+def _render_coverage_header(
+    *,
+    iteration_count: int,
+    action_labeled_count: int,
+    relationship_labeled_count: int,
+    relationship_count: int,
+) -> None:
+    graph_node_count = iteration_count * 3
+    action_percent = _percent(action_labeled_count, iteration_count)
+    relationship_percent = _percent(relationship_labeled_count, relationship_count)
+
+    with st.container(border=True):
+        st.caption("LABELING COVERAGE")
+        metric_cols = st.columns(4)
+        metric_cols[0].metric("Iterations", iteration_count)
+        metric_cols[1].metric("Graph nodes", graph_node_count)
+        metric_cols[2].metric("Action labels", _format_ratio(action_labeled_count, iteration_count))
+        metric_cols[3].metric(
+            "Relationship labels",
+            _format_ratio(relationship_labeled_count, relationship_count),
+        )
+
+        progress_cols = st.columns(2)
+        with progress_cols[0]:
+            st.progress(
+                action_percent / 100,
+                text=f"Action labeling {action_percent}%",
+            )
+        with progress_cols[1]:
+            st.progress(
+                relationship_percent / 100,
+                text=f"Relationship labeling {relationship_percent}%",
+            )
 
 
 def render_summary_screen() -> None:
@@ -113,10 +274,26 @@ def render_summary_screen() -> None:
         st.rerun()
 
     current_labels = labels()
+    current_action_labels = action_labels()
     stats = annotation_stats(trajectory, current_labels)
-    confidence = "n/a"
-    if stats.candidate_count:
-        confidence = f"{round((stats.labeled_count / stats.candidate_count) * 100)}%"
+    relationship_counts = _relationship_count_rows(
+        stats.candidate_count,
+        dict(stats.label_counts),
+    )
+    status_counts, behavior_detail = _behavior_rows(
+        trajectory,
+        stats.candidates,
+        current_labels,
+    )
+    action_counts, action_detail = _action_category_rows(
+        trajectory,
+        current_action_labels,
+    )
+    action_labeled_count = int(
+        (action_detail["Category"] != UNLABELED_ACTION_LABEL).sum()
+        if not action_detail.empty
+        else 0
+    )
 
     meta = active_source_meta()
     render_labeling_header(
@@ -124,24 +301,60 @@ def render_summary_screen() -> None:
         str(meta.get("name") or trajectory.source_name),
     )
 
-    left, right = st.columns([1.04, 1.0])
-    with left:
-        with st.container(border=True):
-            st.caption("ANNOTATION SUMMARY")
-            st.caption("NODES")
-            node_cols = st.columns(3)
-            node_cols[0].metric("Thoughts", len(trajectory.steps))
-            node_cols[1].metric("Actions", len(trajectory.steps))
-            node_cols[2].metric("Results", len(trajectory.steps))
+    _render_coverage_header(
+        iteration_count=len(trajectory.steps),
+        action_labeled_count=action_labeled_count,
+        relationship_labeled_count=stats.labeled_count,
+        relationship_count=stats.candidate_count,
+    )
+    _render_summary_actions(suffix="top")
 
-            st.caption("RELATIONSHIPS")
-            st.dataframe(
-                _label_count_rows(stats.candidate_count, dict(stats.label_counts)),
-                hide_index=True,
-                width="stretch",
+    st.info("Every annotation is editable in the single-run workspace.")
+
+    summary_tab, behavior_tab, action_tab, issues_tab = st.tabs(
+        ["Summary", "Behavior", "Action Categories", "Issues"]
+    )
+
+    with summary_tab:
+        with st.container(border=True):
+            st.caption("RELATIONSHIP LABELS")
+            _render_distribution_table(
+                relationship_counts,
+                label_column="Relationship",
+                count_column="Count",
+                empty_message="No relationship candidates are available for this trace.",
             )
 
-            if stats.bad_pairs:
+    with behavior_tab:
+        with st.container(border=True):
+            st.caption("BEHAVIOR")
+            _render_distribution_table(
+                status_counts,
+                label_column="Status",
+                count_column="Steps",
+                empty_message="No behavior data is available for this trace.",
+            )
+            with st.expander("Iteration behavior detail"):
+                st.dataframe(behavior_detail, hide_index=True, width="stretch")
+
+    with action_tab:
+        with st.container(border=True):
+            st.caption("ACTION CATEGORIES")
+            _render_distribution_table(
+                action_counts,
+                label_column="Category",
+                count_column="Steps",
+                empty_message="No action category data is available for this trace.",
+            )
+            with st.expander("Iteration action category detail"):
+                st.dataframe(action_detail, hide_index=True, width="stretch")
+
+    with issues_tab:
+        with st.container(border=True):
+            st.caption("ISSUES")
+            if stats.labeled_count == 0:
+                st.info("Relationship issue checks are pending until relationships are labeled.")
+            elif stats.bad_pairs:
                 st.error("Bad relationships found.")
                 st.dataframe(
                     _bad_relationship_rows(stats.bad_pairs),
@@ -149,31 +362,6 @@ def render_summary_screen() -> None:
                     width="stretch",
                 )
             else:
-                st.success("No contradiction, misinterpretation, or misalignment labels yet.")
+                st.success("No contradiction, misinterpretation, or misalignment labels found.")
 
-    with right:
-        with st.container(border=True):
-            st.caption("CLASSIFIER CONFIDENCE")
-            st.metric("Relationship labeling", confidence)
-            st.caption("Low-confidence labels can be reviewed in the workspace.")
-
-        with st.container(border=True):
-            st.caption("BEHAVIOR")
-            status_counts, behavior_detail = _behavior_rows(
-                trajectory,
-                stats.candidates,
-                current_labels,
-            )
-            st.bar_chart(status_counts, x="Status", y="Steps", width="stretch")
-            with st.expander("Iteration behavior detail"):
-                st.dataframe(behavior_detail, hide_index=True, width="stretch")
-
-        st.info("Every annotation is editable in the single-run workspace.")
-
-        if st.button("Open in single-run workspace", type="primary", width="stretch"):
-            st.session_state[LABELER_STAGE_STATE_KEY] = LABELER_STAGE_WORKSPACE
-            st.session_state[LABELER_WORKSPACE_TOAST_STATE_KEY] = True
-            st.rerun()
-        if st.button("Re-annotate with different settings", width="stretch"):
-            reset_annotation_flow()
-            st.rerun()
+    _render_summary_actions(suffix="bottom")
