@@ -24,6 +24,7 @@ from traceview_app.trajectory_parser import (
 
 LABELER_TRAJECTORIES_STATE_KEY = "relationship_labeler_trajectories"
 LABELER_ERRORS_STATE_KEY = "relationship_labeler_errors"
+LABELER_ACTION_LABELS_STATE_KEY = "relationship_labeler_action_labels"
 LABELER_LABELS_STATE_KEY = "relationship_labeler_labels"
 LABELER_UPLOAD_SIGNATURE_STATE_KEY = "relationship_labeler_upload_signature"
 LABELER_STAGE_STATE_KEY = "relationship_labeler_stage"
@@ -32,6 +33,8 @@ LABELER_SELECTED_TRAJECTORY_STATE_KEY = "relationship_labeler_selected_trajector
 LABELER_PASTE_STATE_KEY = "relationship_labeler_paste"
 LABELER_PROGRESS_ADVANCED_STATE_KEY = "relationship_labeler_progress_advanced"
 LABELER_WORKSPACE_TOAST_STATE_KEY = "relationship_labeler_workspace_toast"
+LABELER_WORKSPACE_STEP_STATE_KEY = "relationship_labeler_workspace_step"
+LABELER_WIDGET_STATE_PREFIX = "relationship_labeler_label_widget_"
 
 MAX_UPLOAD_BYTES = 25 * 1024 * 1024
 TRACE_UPLOAD_TYPES = ["traj", "json", "jsonl", "log", "txt", "zip"]
@@ -46,6 +49,12 @@ class AnnotationStats:
     bad_pairs: list[tuple[RelationCandidate, str]]
 
 
+def clear_label_widget_state() -> None:
+    for key in list(st.session_state):
+        if str(key).startswith(LABELER_WIDGET_STATE_PREFIX):
+            st.session_state.pop(key, None)
+
+
 def set_loaded_trajectories(
     trajectories: list[ParsedTrajectory],
     errors: list[str],
@@ -55,8 +64,11 @@ def set_loaded_trajectories(
     st.session_state[LABELER_TRAJECTORIES_STATE_KEY] = trajectories
     st.session_state[LABELER_ERRORS_STATE_KEY] = errors
     if reset_labels:
+        clear_label_widget_state()
+        st.session_state[LABELER_ACTION_LABELS_STATE_KEY] = {}
         st.session_state[LABELER_LABELS_STATE_KEY] = {}
     else:
+        st.session_state.setdefault(LABELER_ACTION_LABELS_STATE_KEY, {})
         st.session_state.setdefault(LABELER_LABELS_STATE_KEY, {})
 
 
@@ -67,6 +79,11 @@ def loaded_trajectories() -> list[ParsedTrajectory]:
 
 def labels() -> dict[str, str]:
     value = st.session_state.setdefault(LABELER_LABELS_STATE_KEY, {})
+    return value if isinstance(value, dict) else {}
+
+
+def action_labels() -> dict[str, str]:
+    value = st.session_state.setdefault(LABELER_ACTION_LABELS_STATE_KEY, {})
     return value if isinstance(value, dict) else {}
 
 
@@ -95,6 +112,7 @@ def reset_annotation_flow() -> None:
     for key in (
         LABELER_TRAJECTORIES_STATE_KEY,
         LABELER_ERRORS_STATE_KEY,
+        LABELER_ACTION_LABELS_STATE_KEY,
         LABELER_LABELS_STATE_KEY,
         LABELER_UPLOAD_SIGNATURE_STATE_KEY,
         LABELER_SOURCE_META_STATE_KEY,
@@ -102,8 +120,10 @@ def reset_annotation_flow() -> None:
         LABELER_PASTE_STATE_KEY,
         LABELER_PROGRESS_ADVANCED_STATE_KEY,
         LABELER_WORKSPACE_TOAST_STATE_KEY,
+        LABELER_WORKSPACE_STEP_STATE_KEY,
     ):
         st.session_state.pop(key, None)
+    clear_label_widget_state()
     st.session_state[LABELER_STAGE_STATE_KEY] = LABELER_STAGE_INGEST
 
 

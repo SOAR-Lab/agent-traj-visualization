@@ -39,6 +39,17 @@ ACTIONS_CATEGORIES_ITER_COL = "iteration"
 ACTIONS_CATEGORIES_CAT_COL = "category"
 REL_LABEL_COL = "label"
 
+ACTION_LABEL_OPTIONS = (
+    "Explore",
+    "Locate",
+    "Search",
+    "Reproduce",
+    "Generate fix",
+    "Run tests",
+    "Refactor",
+    "Explain",
+)
+
 REL_SPECS = {
     "thought_action": {
         "src": THOUGHT_NODE_KIND,

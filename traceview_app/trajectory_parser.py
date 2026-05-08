@@ -14,6 +14,7 @@ from traceview_app.constants import (
     ACTIONS_CATEGORIES_CAT_COL,
     ACTIONS_CATEGORIES_FOLDER,
     ACTIONS_CATEGORIES_ITER_COL,
+    ACTION_LABEL_OPTIONS,
     LABELER_VIEWER_EXPORTS_PATH,
     LOGS_DIR,
     PROJECT_ROOT,
@@ -32,6 +33,7 @@ from traceview_app.node_ids import (
     step_node_id,
 )
 
+UNLABELED_ACTION_LABEL = "Unlabeled"
 UNLABELED_RELATION_LABEL = "Unlabeled"
 VIEWER_EXPORT_CATEGORY = "Labeled trace"
 LOCAL_SWEAGENT_TRAJECTORY_DIR = PROJECT_ROOT / "sweagent_claude4_trajs"
@@ -432,6 +434,53 @@ def export_label_for_candidate(candidate: RelationCandidate, labels: dict[str, s
     return "" if label == UNLABELED_RELATION_LABEL else label
 
 
+def action_label_key(trajectory: ParsedTrajectory, step_index: int) -> str:
+    return f"{trajectory.key}|action|{step_index}"
+
+
+def action_label_for_step(
+    trajectory: ParsedTrajectory,
+    step_index: int,
+    action_labels: dict[str, str],
+) -> str:
+    label = action_labels.get(action_label_key(trajectory, step_index), UNLABELED_ACTION_LABEL)
+    return label if label in ACTION_LABEL_OPTIONS else UNLABELED_ACTION_LABEL
+
+
+def export_action_label_for_step(
+    trajectory: ParsedTrajectory,
+    step_index: int,
+    action_labels: dict[str, str],
+) -> str:
+    label = action_label_for_step(trajectory, step_index, action_labels)
+    return VIEWER_EXPORT_CATEGORY if label == UNLABELED_ACTION_LABEL else label
+
+
+def action_labeling_records(
+    trajectory: ParsedTrajectory,
+    action_labels: dict[str, str],
+) -> list[dict[str, object]]:
+    return [
+        {
+            "task_id": trajectory.task_id,
+            "source_name": trajectory.source_name,
+            "iteration": step.step_index,
+            "action_label": action_label_for_step(
+                trajectory,
+                step.step_index,
+                action_labels,
+            ),
+            "export_category": export_action_label_for_step(
+                trajectory,
+                step.step_index,
+                action_labels,
+            ),
+            "action_text": step.action,
+        }
+        for step in sorted(trajectory.steps, key=lambda item: item.step_index)
+    ]
+
+
 def labeling_records(
     trajectory: ParsedTrajectory,
     labels: dict[str, str],
@@ -470,6 +519,20 @@ def labels_json_bytes(trajectory: ParsedTrajectory, labels: dict[str, str]) -> b
     return json.dumps(payload, indent=2, ensure_ascii=False).encode("utf-8")
 
 
+def annotation_json_bytes(
+    trajectory: ParsedTrajectory,
+    relation_labels: dict[str, str],
+    action_labels: dict[str, str] | None = None,
+) -> bytes:
+    payload = {
+        "task_id": trajectory.task_id,
+        "source_name": trajectory.source_name,
+        "action_records": action_labeling_records(trajectory, action_labels or {}),
+        "relationship_records": labeling_records(trajectory, relation_labels),
+    }
+    return json.dumps(payload, indent=2, ensure_ascii=False).encode("utf-8")
+
+
 def relation_csv_text(candidates: list[RelationCandidate], labels: dict[str, str]) -> str:
     buffer = io.StringIO()
     writer = csv.DictWriter(buffer, fieldnames=[REL_LABEL_COL], lineterminator="\n")
@@ -503,6 +566,7 @@ def relation_csv_zip_bytes(trajectory: ParsedTrajectory, labels: dict[str, str])
 def action_categories_csv_text(
     trajectory: ParsedTrajectory,
     *,
+    action_labels: dict[str, str] | None = None,
     category: str = VIEWER_EXPORT_CATEGORY,
 ) -> str:
     buffer = io.StringIO()
@@ -512,12 +576,54 @@ def action_categories_csv_text(
         lineterminator="\n",
     )
     writer.writeheader()
+    current_action_labels = action_labels or {}
     for step in sorted(trajectory.steps, key=lambda item: item.step_index):
         writer.writerow(
             {
                 ACTIONS_CATEGORIES_ITER_COL: step.step_index,
-                ACTIONS_CATEGORIES_CAT_COL: category,
+                ACTIONS_CATEGORIES_CAT_COL: (
+                    export_action_label_for_step(
+                        trajectory,
+                        step.step_index,
+                        current_action_labels,
+                    )
+                    if current_action_labels
+                    else category
+                ),
             }
+        )
+    return buffer.getvalue()
+
+
+def viewer_csv_zip_bytes(
+    trajectory: ParsedTrajectory,
+    relation_labels: dict[str, str],
+    action_labels: dict[str, str] | None = None,
+) -> bytes:
+    candidates_by_family: dict[str, list[RelationCandidate]] = {
+        family: [] for family in REL_SPECS
+    }
+    for candidate in build_relation_candidates(trajectory):
+        candidates_by_family[candidate.family].append(candidate)
+
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, mode="w", compression=zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr(
+            f"{ACTIONS_CATEGORIES_FOLDER}/{trajectory.task_id}.csv",
+            action_categories_csv_text(trajectory, action_labels=action_labels or {}),
+        )
+        for family, candidates in candidates_by_family.items():
+            archive.writestr(
+                f"{family}/{trajectory.task_id}.csv",
+                relation_csv_text(candidates, relation_labels),
+            )
+        archive.writestr(
+            f"{trajectory.task_id}.labels.json",
+            annotation_json_bytes(
+                trajectory,
+                relation_labels,
+                action_labels,
+            ),
         )
     return buffer.getvalue()
 
@@ -602,12 +708,16 @@ def record_labeler_viewer_export(filename: str, trajectory: ParsedTrajectory) ->
 def write_viewer_dataset_files(
     trajectory: ParsedTrajectory,
     labels: dict[str, str],
+    action_labels: dict[str, str] | None = None,
 ) -> str:
     filename = unique_viewer_dataset_filename(trajectory.task_id)
 
     action_path = ROOT / ACTIONS_CATEGORIES_FOLDER / filename
     action_path.parent.mkdir(parents=True, exist_ok=True)
-    action_path.write_text(action_categories_csv_text(trajectory), encoding="utf-8")
+    action_path.write_text(
+        action_categories_csv_text(trajectory, action_labels=action_labels or {}),
+        encoding="utf-8",
+    )
 
     log_path = LOGS_DIR / Path(filename).with_suffix(".txt").name
     log_path.parent.mkdir(parents=True, exist_ok=True)
