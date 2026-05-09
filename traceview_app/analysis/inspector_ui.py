@@ -6,7 +6,11 @@ import pandas as pd
 import streamlit as st
 
 from traceview_app.shared.constants import BAD_RELS, LOOPISH_RELS
-from traceview_app.analysis.iteration_context import extract_file_mentions, summarize_action
+from traceview_app.analysis.iteration_context import (
+    SHOW_DERIVED_ITERATION_CONTEXT,
+    extract_file_mentions,
+    summarize_action,
+)
 from traceview_app.shared.models import EdgeRecord, IterationRecord, SidebarControls
 from traceview_app.shared.node_ids import (
     ACTION_NODE_KIND,
@@ -142,6 +146,7 @@ def _render_inspector_evidence_header(
     flagged_relations: list[str],
     show_full_inspector_button: bool = False,
     show_raw_log_note: bool = True,
+    show_derived_context: bool = True,
 ) -> bool:
     with st.container(border=True):
         st.caption("INSPECTOR TARGET")
@@ -165,15 +170,19 @@ def _render_inspector_evidence_header(
         metric_cols[2].metric("Incoming", incoming_count)
         metric_cols[3].metric("Outgoing", outgoing_count)
 
-        if action_context:
+        if show_derived_context and action_context:
             st.markdown("**Action context**")
             st.write(action_context)
 
-        file_col, relation_col = st.columns(2)
-        with file_col:
-            st.markdown("**Files mentioned**")
-            _render_badge_row(files[:4])
-        with relation_col:
+        if show_derived_context:
+            file_col, relation_col = st.columns(2)
+            with file_col:
+                st.markdown("**Files mentioned**")
+                _render_badge_row(files[:4])
+            with relation_col:
+                st.markdown("**Flagged relations**")
+                _render_relation_badges(flagged_relations)
+        else:
             st.markdown("**Flagged relations**")
             _render_relation_badges(flagged_relations)
 
@@ -330,6 +339,7 @@ def render_inspector(
         or _flagged_relation_labels(rels_for_iteration),
         show_full_inspector_button=show_full_inspector_button,
         show_raw_log_note=standalone,
+        show_derived_context=SHOW_DERIVED_ITERATION_CONTEXT,
     )
 
     if not standalone:

@@ -5,6 +5,7 @@ from __future__ import annotations
 import pandas as pd
 from streamlit_agraph import Edge, Node
 
+from traceview_app.analysis.iteration_context import SHOW_DERIVED_ITERATION_CONTEXT
 from traceview_app.shared.constants import (
     ACTIONS_CATEGORIES_CAT_COL,
     ACTIONS_CATEGORIES_ITER_COL,
@@ -310,7 +311,7 @@ def build_graph_elements(
                 shorten(category, controls.label_max_len),
             ]
             context_label = iteration.get("context_label", "")
-            if context_label:
+            if SHOW_DERIVED_ITERATION_CONTEXT and context_label:
                 label_parts.append(shorten(context_label, controls.label_max_len + 10))
             label = "\n".join(label_parts)
             nodes.append(

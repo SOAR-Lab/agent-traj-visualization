@@ -57,11 +57,11 @@ def render_sidebar_controls(
         key=TASK_FILE_SELECT_STATE_KEY,
     )
 
-    graph_mode_options = ["Detailed", "Iteration"]
+    graph_mode_options = ["Iteration", "Detailed"]
     default_graph_mode = (
         default_controls.graph_mode
         if default_controls and default_controls.graph_mode in graph_mode_options
-        else "Detailed"
+        else "Iteration"
     )
     graph_mode = st.sidebar.radio(
         "Graph mode",

@@ -25,6 +25,10 @@ ACTION_ALIASES = {
     "errorresponse": "error response",
 }
 
+# Keep the heuristic extractor available, but hide its UI until we have a
+# source-agnostic context strategy for mixed agent logs.
+SHOW_DERIVED_ITERATION_CONTEXT = False
+
 
 def _one_line(text: str) -> str:
     return " ".join((text or "").replace("\r\n", "\n").split())

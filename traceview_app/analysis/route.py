@@ -6,6 +6,7 @@ import streamlit as st
 from streamlit_agraph import Config, agraph
 
 from traceview_app.analysis.inspector_ui import render_inspector
+from traceview_app.analysis.iteration_context import SHOW_DERIVED_ITERATION_CONTEXT
 from traceview_app.analysis.iteration_ui import render_iteration_context_panel
 from traceview_app.analysis.sidebar_ui import render_sidebar_controls
 from traceview_app.analysis.view_context import build_view_context
@@ -351,7 +352,7 @@ def render_analysis_route(
 
     _render_patch_summary(view, controls)
 
-    if controls.graph_mode == "Iteration":
+    if SHOW_DERIVED_ITERATION_CONTEXT and controls.graph_mode == "Iteration":
         with st.expander("Iteration Context", expanded=True):
             render_iteration_context_panel(view["iterations"], show_heading=False)
 
