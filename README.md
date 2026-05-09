@@ -1,11 +1,11 @@
 # TraceView
 
-TraceView is a Streamlit application for visualizing step-by-step agent trajectories as directed graphs over `Thought`, `Action`, and `Result` nodes. The app supports AutoCodeRover-style traces and uploaded user traces, and lets you inspect:
+TraceView is a Streamlit application for labeling and visualizing step-by-step agent trajectories as directed graphs over `Thought`, `Action`, and `Result` nodes. The app supports bundled AutoCodeRover-style traces and uploaded user traces, and lets you inspect:
 
 - step-level action categories
 - labeled semantic relations between trajectory elements
 - reconstructed trajectory text for each step
-- final patch outcome metadata
+- final patch outcome metadata when it is available for bundled datasets
 
 The result is an interactive trace viewer for studying how an agent moves through a software engineering task, where it stays aligned, where it loops, and where it diverges or breaks down.
 
@@ -20,10 +20,10 @@ uv run streamlit run traceview.py
 
 Then:
 
-1. pick a task from the sidebar
-2. start in `Detailed` mode
-3. click a node to inspect its text and attached relations
-4. switch to `Iteration` mode to see the compressed phase-level trajectory
+1. use `Labeling` to upload or paste a raw trajectory, label actions first, then label relationships
+2. send the labeled run to `Overview`, or open an existing run from `Overview`
+3. open `Analysis`, which starts in `Iteration` mode by default
+4. switch to `Detailed` mode when you need the full `Thought -> Action -> Result` step graph
 
 ## Current Status
 
@@ -43,19 +43,21 @@ TraceView should be treated as the canonical version of the repo.
 
 ## What The App Does
 
-For a selected task, the app combines four kinds of information:
+For a selected task, the app combines up to four kinds of information:
 
 1. A CSV that assigns an action category to each step.
 2. Several CSVs that assign a relation label to specific edge families.
 3. A reconstructed text log containing the original `Thought`, `Action`, and `Result` content for each step.
-4. A JSON file containing patch outcome metadata.
+4. A JSON file containing patch outcome metadata for bundled AutoCodeRover tasks.
 
 From those sources it builds an interactive graph with two views:
 
-- `Detailed` mode: one `T -> A -> R` triplet per step
 - `Iteration` mode: consecutive steps with the same action category collapsed into higher-level grouped nodes
+- `Detailed` mode: one `T -> A -> R` triplet per step
 
 You can click any node to inspect the underlying text and the labeled relations attached to that node or grouped phase.
+
+Uploaded user traces can be exported into the same viewer-compatible CSV structure and sent to Overview. They do not have AutoCodeRover `results.json` entries, so their patch result is shown as unscored.
 
 ## Main Features
 
@@ -69,8 +71,8 @@ You can click any node to inspect the underlying text and the labeled relations 
 - Optional structural edge:
   - `Action -> Result (Structural)`
 - Two graph modes:
+  - `Iteration` by default
   - `Detailed`
-  - `Iteration`
 - Relation filters:
   - only bad relations
   - only loop-ish relations
@@ -82,8 +84,10 @@ You can click any node to inspect the underlying text and the labeled relations 
   - label length
   - edge label visibility
 - Inline inspector or separate inspector page
-- Patch result summary with PASS/FAIL marking on the final result node
+- Patch result summary with PASS/FAIL marking on the final result node when result metadata is available
 - Relation metrics summary across the selected task
+- Raw-trace labeling workflow with action labels first, then relationship labels
+- Compact labeling legends in the labeling sidebar
 
 ## Repository Layout
 
@@ -97,24 +101,39 @@ agent-traj-visualization/
 |- llm_label_demo.ipynb
 |- traceview_app/
 |  |- app.py
-|  |- constants.py
-|  |- formatting.py
-|  |- graph_builder.py
-|  |- inspector_ui.py
-|  |- iteration_context.py
-|  |- iteration_ui.py
-|  |- labeling_common_ui.py
-|  |- labeling_ingest_ui.py
-|  |- labeling_router.py
-|  |- labeling_state.py
-|  |- labeling_summary_ui.py
-|  |- labeling_workspace_ui.py
 |  |- layout_ui.py
-|  |- models.py
-|  |- node_ids.py
-|  |- overview_ui.py
-|  |- trajectory_parser.py
-|  |- viewer_data.py
+|  |- analysis/
+|  |  |- route.py
+|  |  |- sidebar_ui.py
+|  |  |- graph_builder.py
+|  |  |- inspector_ui.py
+|  |  |- iteration_ui.py
+|  |  |- iteration_context.py
+|  |  |- view_context.py
+|  |- labeling/
+|  |  |- router.py
+|  |  |- ingest_ui.py
+|  |  |- summary_ui.py
+|  |  |- state.py
+|  |  |- common_ui.py
+|  |  |- workspace_ui.py
+|  |  |- workspace_action_ui.py
+|  |  |- workspace_relationship_ui.py
+|  |  |- workspace_sidebar.py
+|  |  |- workspace_shared.py
+|  |- overview/
+|  |  |- ui.py
+|  |  |- data.py
+|  |- shared/
+|  |  |- constants.py
+|  |  |- formatting.py
+|  |  |- models.py
+|  |  |- node_ids.py
+|  |- trajectory/
+|     |- parsers.py
+|     |- relationships.py
+|     |- exports.py
+|     |- common.py
 |- autocoderover_csv/
 |  |- actions_categories/
 |  |- thought_action/
@@ -126,6 +145,7 @@ agent-traj-visualization/
 |- data/
 |  |- json/
 |     |- results.json
+|     |- labeler_viewer_exports.json
 |     |- normalized_trace.json
 |     |- graph_trace.json
 |     |- file_context.json
@@ -143,6 +163,9 @@ The current Streamlit app primarily depends on:
 - `autocoderover_csv/`
 - `reconstructed_autocoderover/`
 - `data/json/results.json`
+- `data/json/labeler_viewer_exports.json`
+
+`results.json` is specific to the bundled AutoCodeRover dataset. User-uploaded trajectories sent from Labeling to Overview are tracked through `labeler_viewer_exports.json` and are treated as unscored because TraceView cannot infer patch outcomes for arbitrary uploaded logs.
 
 The other JSON files in `data/json/` are legacy artifacts from earlier prototypes and are not used by TraceView.
 
@@ -212,15 +235,17 @@ If you already have a local virtual environment in this checkout:
 
 After launch, the app opens a browser page where you can:
 
-1. choose a task file from the sidebar
-2. switch between `Detailed` and `Iteration` graph mode
-3. filter relation types
-4. adjust graph layout settings
-5. click nodes to inspect the underlying content
+1. upload or paste trajectories in `Labeling`
+2. send labeled trajectories to `Overview`
+3. open a run in `Analysis`
+4. switch between `Iteration` and `Detailed` graph mode
+5. filter relation types
+6. adjust graph layout settings
+7. click nodes to inspect the underlying content
 
 ## Relationship Labeling
 
-The `Labeling` page provides a staged annotation workflow for raw agent traces. It accepts uploaded `.traj`, `.json`, `.jsonl`, `.log`, and `.txt` files, or a `.zip` containing supported trace files. If a local `sweagent_claude4_trajs/` folder exists, the page can also load that folder directly.
+The `Labeling` page provides a staged annotation workflow for raw agent traces. It accepts pasted text, uploaded `.traj`, `.json`, `.jsonl`, `.log`, and `.txt` files, or a `.zip` containing supported trace files. If a local `sweagent_claude4_trajs/` folder exists, the page can also load that folder directly.
 
 The labeler parses each trajectory into Thought / Action / Result steps and generates the same relationship families used by the graph viewer:
 
@@ -230,7 +255,19 @@ The labeler parses each trajectory into Thought / Action / Result steps and gene
 - `Result -> Thought`
 - `Result -> Action`
 
-After ingest, the page shows annotation progress, a completion summary, and a single-run workspace. The workspace label table lets users edit the relationship label column and export either a JSON evidence record or a zip of viewer-compatible relation CSVs. Label options are constrained by relationship family; unedited rows remain `Unlabeled` and export as blank relation labels.
+After ingest, the page shows annotation progress, a completion summary, and a single-run workspace. The workspace is intentionally ordered:
+
+1. Label every action category first.
+2. Continue to relationship labels.
+3. Export the labeled run or send it to Overview.
+
+The action-labeling table assigns one action category per iteration. These labels become the action-category CSV used by Overview and Analysis.
+
+The relationship-labeling table lets users edit the relationship label column. Label options are constrained by relationship family; unedited rows remain `Unlabeled` and export as blank relation labels.
+
+The labeling sidebar shows progress, the current step's compact legend, navigation between action and relationship labeling, and export controls once export is available.
+
+The completion summary focuses on coverage: action-label progress, relationship-label progress, relationship distribution, behavior distribution, action-category distribution, and issue checks. It is a review page; annotations remain editable in the workspace.
 
 ## Data Model And Naming Convention
 
@@ -251,6 +288,8 @@ That stem is used to align:
 - the relation-label CSVs
 - the reconstructed log
 - the patch outcome entry in `results.json`
+
+For uploaded traces sent from Labeling to Overview, TraceView creates viewer-compatible files using a generated CSV filename and records the uploaded trace metadata separately. These runs are still aligned by filename for graph rendering, but they do not require or receive a `results.json` entry.
 
 ### GitHub Link Convention
 
@@ -288,7 +327,7 @@ iteration,category
 0,Search
 1,Explain
 2,Locate
-3,Generate Fix
+3,Generate fix
 ```
 
 This file drives:
@@ -386,7 +425,9 @@ Example:
 The app reduces the matched categories to a single primary status using a fixed priority order. That status is used in:
 
 - the patch overview summary
-- the PASS/FAIL styling of the final result node
+- the PASS/FAIL/UNSCORED styling of the final result node
+
+This file is only used for bundled AutoCodeRover-style tasks. Uploaded user traces are shown as unscored unless matching result metadata is added manually.
 
 ## How The Graph Is Built
 
@@ -410,6 +451,7 @@ The final result node is special:
 
 - it is enlarged relative to the other result nodes
 - it is colored green and labeled `PASS` when the primary patch status is `RESOLVED`
+- it is colored gray and labeled `UNSCORED` when patch metadata is unavailable
 - otherwise it is colored red and labeled `FAIL`
 
 An optional structural edge from `Action -> Result` can also be rendered for each step.
@@ -428,13 +470,11 @@ Grouped nodes are labeled with:
 - an `I#` identifier
 - the action category name
 
-Then the app aggregates detailed semantic edges into cross-group edges:
-
-- all detailed edges between two grouped nodes are collected
-- relation labels are counted
-- the most frequent relation becomes the displayed label and color
+Then the app aggregates `Action -> Action` semantic edges into cross-group edges between collapsed iteration nodes.
 
 If no semantic filter is active, gray chronological edges are also added between adjacent grouped nodes to preserve the overall sequence.
+
+TraceView still contains a heuristic iteration-context extractor, but the derived context text is currently hidden from the UI because uploaded logs can come from inconsistent agent formats.
 
 ## Relation Semantics And Filters
 
@@ -481,7 +521,7 @@ These filters apply before graph edges are built.
 The sidebar provides:
 
 - dataset selection
-- graph mode toggle
+- graph mode toggle, defaulting to `Iteration`
 - separate-page inspector toggle
 - detailed-mode edge family selection
 - detailed-mode structural edge selection
@@ -491,18 +531,16 @@ The sidebar provides:
 
 Note:
 
-- edge family selection is intentionally hidden in `Iteration` mode, because grouped mode shows the aggregated result of all enabled semantic families
+- edge family selection is intentionally hidden in `Iteration` mode, because grouped mode shows cross-iteration `Action -> Action` relation edges plus chronological sequence edges
 
 ### Main Page Sections
 
 The main graph page contains:
 
 1. a report/patch overview
-2. a shared legend
-3. a short graph guide for the current mode
-4. the graph canvas
-5. the inspector, or a message telling you to click a node
-6. relationship metrics
+2. the graph canvas
+3. the inspector, or a message telling you to click a node
+4. support tabs for guide, legend, and relationship metrics
 
 ### Inspector
 
@@ -525,6 +563,8 @@ In iteration mode, clicking a grouped node shows:
 - relations from previous grouped units
 - relations to later grouped units
 - the full text content for all member steps
+
+Derived action summaries and file-mention context for grouped iterations are currently hidden by default.
 
 ## Relationship Metrics
 
@@ -559,9 +599,11 @@ Check that:
 - `reconstructed_autocoderover/<task>.txt` exists
 - it contains `Iteration`, `Thought`, `Action`, and `Result` sections
 
-### The patch result shows `UNKNOWN`
+### The patch result shows `UNKNOWN` or `UNSCORED`
 
-Check that:
+For uploaded user traces, this is expected because arbitrary uploads do not have AutoCodeRover result metadata.
+
+For bundled AutoCodeRover tasks, check that:
 
 - the task id appears in `data/json/results.json`
 
