@@ -14,11 +14,9 @@ from traceview_app.labeling.workspace_action_ui import (
     sync_action_labels_from_widgets,
 )
 from traceview_app.labeling.common_ui import (
-    render_action_label_legend,
     render_labeling_header,
     render_labeling_notice,
     render_parser_warnings,
-    render_relationship_label_legend,
 )
 from traceview_app.labeling.workspace_relationship_ui import (
     discard_invalid_family_labels,
@@ -145,7 +143,6 @@ def render_workspace_page() -> None:
             "Label the action taken in each iteration. These labels drive Overview "
             "behavior and graph action categories."
         )
-        render_action_label_legend()
         render_action_label_rows(trajectory, current_action_labels)
         action_labeled_count = count_action_labels(trajectory, current_action_labels)
         actions_complete = action_labeled_count == action_count
@@ -181,7 +178,6 @@ def render_workspace_page() -> None:
         "Only the `Label` column is editable. Allowed labels: "
         + ", ".join(relation_label_options_for_family(selected_family))
     )
-    render_relationship_label_legend()
     render_relationship_label_rows(family_candidates, current_labels)
     labeled_count = count_relationship_labels(all_candidates, current_labels)
 
@@ -194,6 +190,8 @@ def render_workspace_page() -> None:
         labeled_count=labeled_count,
         actions_complete=actions_complete,
         workspace_step=workspace_step,
+        selected_family=selected_family,
+        selected_family_label=selected_family_label,
     )
 
     candidate_options = {

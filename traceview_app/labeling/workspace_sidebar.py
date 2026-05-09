@@ -4,6 +4,10 @@ from __future__ import annotations
 
 import streamlit as st
 
+from traceview_app.labeling.common_ui import (
+    render_compact_action_label_legend,
+    render_compact_relationship_label_legend,
+)
 from traceview_app.shared.constants import (
     APP_ROUTE_STATE_KEY,
     DETAIL_FILENAME_STATE_KEY,
@@ -56,6 +60,8 @@ def render_workspace_sidebar(
     labeled_count: int,
     actions_complete: bool,
     workspace_step: str,
+    selected_family: str | None = None,
+    selected_family_label: str | None = None,
 ) -> None:
     candidate_count = len(all_candidates)
     action_count = len(trajectory.steps)
@@ -67,13 +73,26 @@ def render_workspace_sidebar(
         action_progress,
         text=f"{action_labeled_count} of {action_count} actions labeled",
     )
-    st.sidebar.progress(
-        progress,
-        text=f"{labeled_count} of {candidate_count} relationships labeled",
-    )
-    st.sidebar.caption(
-        f"Unlabeled relationships: {candidate_count - labeled_count}"
-    )
+    if workspace_step == WORKSPACE_STEP_RELATIONSHIPS:
+        st.sidebar.progress(
+            progress,
+            text=f"{labeled_count} of {candidate_count} relationships labeled",
+        )
+        st.sidebar.caption(
+            f"Unlabeled relationships: {candidate_count - labeled_count}"
+        )
+
+    st.sidebar.caption("LEGEND")
+    if workspace_step == WORKSPACE_STEP_ACTIONS:
+        with st.sidebar.container(border=True):
+            render_compact_action_label_legend()
+    else:
+        legend_title = selected_family_label or "RELATIONSHIP LABELS"
+        with st.sidebar.container(border=True):
+            render_compact_relationship_label_legend(
+                selected_family,
+                title=legend_title.upper(),
+            )
 
     if workspace_step == WORKSPACE_STEP_ACTIONS and actions_complete:
         if st.sidebar.button(
@@ -90,12 +109,15 @@ def render_workspace_sidebar(
             st.session_state[LABELER_WORKSPACE_STEP_STATE_KEY] = WORKSPACE_STEP_ACTIONS
             st.rerun()
 
-    st.sidebar.caption("EXPORT")
     can_export = actions_complete and workspace_step == WORKSPACE_STEP_RELATIONSHIPS
     if not actions_complete:
         st.sidebar.caption("Finish action labels before exporting.")
-    elif workspace_step != WORKSPACE_STEP_RELATIONSHIPS:
+        return
+    if workspace_step != WORKSPACE_STEP_RELATIONSHIPS:
         st.sidebar.caption("Continue to relationship labels before exporting.")
+        return
+
+    st.sidebar.caption("EXPORT")
     if st.sidebar.button(
         "Send to overview",
         type="primary",

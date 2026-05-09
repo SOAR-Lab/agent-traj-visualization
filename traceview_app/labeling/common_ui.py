@@ -22,6 +22,18 @@ ACTION_LABEL_DESCRIPTIONS = {
     "Explain": "Reason, summarize, or plan without directly changing or validating code.",
 }
 
+ACTION_LABEL_SHORT_DESCRIPTIONS = {
+    "Unlabeled": "No action category selected.",
+    "Explore": "Inspect task, repo, or context.",
+    "Locate": "Find the file or code area.",
+    "Search": "Run a targeted search.",
+    "Reproduce": "Run checks to observe the issue.",
+    "Generate fix": "Create or edit solution code.",
+    "Run tests": "Validate with tests or checks.",
+    "Refactor": "Restructure without behavior change.",
+    "Explain": "Reason, summarize, or plan.",
+}
+
 LABEL_DESCRIPTIONS = {
     "Unlabeled": "No decision has been made for this relationship yet.",
     "No influence": "The source does not materially affect the target.",
@@ -36,6 +48,22 @@ LABEL_DESCRIPTIONS = {
     "Misinterpretation": "The target draws an incorrect conclusion from the source result.",
     "Contradiction": "The target conflicts with information or reasoning in the source.",
     "Divergence": "The target shifts away from the prior goal without clear rationale.",
+}
+
+LABEL_SHORT_DESCRIPTIONS = {
+    "Unlabeled": "No relationship decision yet.",
+    "No influence": "Source does not affect target.",
+    "Alignment": "Action follows the thought.",
+    "Follow-up": "Target continues source work.",
+    "Refinement": "Target improves or narrows source.",
+    "Informative": "Result gives useful information.",
+    "Triggering": "Result directly prompts action.",
+    "Redundancy": "Repeats reasoning without progress.",
+    "Repetition": "Repeats a similar action.",
+    "Misalignment": "Action does not serve thought.",
+    "Misinterpretation": "Incorrect conclusion from result.",
+    "Contradiction": "Conflicts with prior information.",
+    "Divergence": "Shifts away without clear reason.",
 }
 
 _LABEL_FAMILY_NAMES = {
@@ -92,6 +120,12 @@ def render_action_label_legend() -> None:
     )
 
 
+def render_compact_action_label_legend() -> None:
+    st.caption("ACTION LABELS")
+    for label in ("Unlabeled", *ACTION_LABEL_OPTIONS):
+        st.markdown(f"**{label}**: {ACTION_LABEL_SHORT_DESCRIPTIONS[label]}")
+
+
 def render_relationship_label_legend() -> None:
     rows = [
         {
@@ -118,6 +152,20 @@ def render_relationship_label_legend() -> None:
             ),
         },
     )
+
+
+def render_compact_relationship_label_legend(
+    family: str | None,
+    *,
+    title: str = "RELATIONSHIP LABELS",
+) -> None:
+    label_options = RELATION_LABEL_OPTIONS_BY_FAMILY.get(
+        family or "",
+        RELATION_LABEL_OPTIONS,
+    )
+    st.caption(title)
+    for label in ("Unlabeled", *label_options):
+        st.markdown(f"**{label}**: {LABEL_SHORT_DESCRIPTIONS[label]}")
 
 
 def render_parser_warnings(errors: list[str], *, expanded: bool = False) -> None:
