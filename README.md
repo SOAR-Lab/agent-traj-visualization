@@ -57,10 +57,6 @@ That file is only a thin Streamlit entrypoint. The actual implementation lives u
 
 - `traceview_app/`
 
-Older Python versions of the project were moved into:
-
-- `archive/python_prototypes/`
-
 TraceView should be treated as the canonical version of the repo.
 
 ## What The App Does
@@ -172,8 +168,6 @@ agent-traj-visualization/
 |     |- graph_trace.json
 |     |- file_context.json
 |     |- agraph_graph.json
-|- archive/
-|  |- python_prototypes/
 ```
 
 ## Which Files Matter For The Current App
@@ -190,8 +184,6 @@ The current Streamlit app primarily depends on:
 `results.json` is specific to the bundled AutoCodeRover dataset. User-uploaded trajectories sent from Labeling to Overview are tracked through `labeler_viewer_exports.json` and are treated as unscored because TraceView cannot infer patch outcomes for arbitrary uploaded logs.
 
 The other JSON files in `data/json/` are legacy artifacts from earlier prototypes and are not used by TraceView.
-
-Large raw trajectory folders from earlier experiments are intentionally not included in this checkout. In particular, the archived AXE and SWE-agent prototypes refer to local folders named `AXE_logs/` and `sweagent_claude4_trajs/`, but those folders were removed from the repo because they were too large. Restore those folders locally only if you need to run the archived prototype scripts; TraceView does not require them.
 
 ## Environment And Setup
 
