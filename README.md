@@ -13,9 +13,31 @@ The result is an interactive trace viewer for studying how an agent moves throug
 
 If you only need the shortest path:
 
-```powershell
+```shell
 uv sync
 uv run streamlit run traceview.py
+```
+
+If you do not have `uv`, either install it from the official [uv installation guide](https://docs.astral.sh/uv/getting-started/installation/) or use Python's built-in `venv` plus `pip`:
+
+Windows PowerShell:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -e .
+streamlit run traceview.py
+```
+
+macOS/Linux:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -e .
+streamlit run traceview.py
 ```
 
 Then:
@@ -189,33 +211,52 @@ Primary runtime dependencies include:
 - `streamlit-agraph`
 - `pandas`
 
+### If You Do Not Have `uv`
+
+You have two options:
+
+- Install `uv` from the official [uv installation guide](https://docs.astral.sh/uv/getting-started/installation/), then use the `uv sync` commands below.
+- Use Python's built-in `venv` module and `pip`, which requires no separate project-management tool.
+
 ### Install With `uv`
 
 If you use `uv`, the simplest setup is:
 
-```powershell
+```shell
 uv sync
 ```
 
 Then run the app with:
 
-```powershell
+```shell
 uv run streamlit run traceview.py
 ```
 
-### Install Without `uv`
+### Install With `venv` And `pip`
 
-If you prefer a plain virtual environment, create one and install the dependency set declared in `pyproject.toml`:
+If you prefer built-in Python tooling, create a virtual environment and install the project dependencies from `pyproject.toml`:
+
+Windows PowerShell:
 
 ```powershell
 python -m venv .venv
 .venv\Scripts\Activate.ps1
-pip install dotenv google-genai ipykernel jsonlines pandas pandas-stubs plotly streamlit streamlit-agraph tqdm
+python -m pip install --upgrade pip
+python -m pip install -e .
+```
+
+macOS/Linux:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -e .
 ```
 
 Then run:
 
-```powershell
+```shell
 streamlit run traceview.py
 ```
 
@@ -223,14 +264,22 @@ streamlit run traceview.py
 
 From the project root:
 
-```powershell
+```shell
 streamlit run traceview.py
 ```
 
 If you already have a local virtual environment in this checkout:
 
+Windows PowerShell:
+
 ```powershell
 .venv\Scripts\streamlit.exe run traceview.py
+```
+
+macOS/Linux:
+
+```bash
+.venv/bin/streamlit run traceview.py
 ```
 
 After launch, the app opens a browser page where you can:
