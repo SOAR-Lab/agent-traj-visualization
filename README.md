@@ -65,6 +65,8 @@ Evaluator-facing materials live in:
 
 - `docs/evaluation_instructions.md`
 - `docs/evaluation_video_script.md`
+- `docs/User Survey on Trajectory Analysis Tool - Google Forms.pdf`
+- `docs/images/`, which contains screenshots used by the evaluator guide
 - `evaluation_samples/`, which contains short 8-step SWE-agent `.traj` fixtures
 - `tools/create_evaluation_samples.py`, which regenerates those fixtures from local SWE-agent trajectories
 
@@ -127,6 +129,8 @@ agent-traj-visualization/
 |- docs/
 |  |- evaluation_instructions.md
 |  |- evaluation_video_script.md
+|  |- User Survey on Trajectory Analysis Tool - Google Forms.pdf
+|  |- images/
 |- evaluation_samples/
 |  |- README.md
 |  |- *.traj

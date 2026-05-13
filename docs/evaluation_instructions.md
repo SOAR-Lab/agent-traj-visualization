@@ -3,7 +3,7 @@
 Use this guide to evaluate TraceView from the perspective of someone labeling,
 reviewing, and inspecting an agent trajectory.
 
-[IMAGE PLACEHOLDER: TraceView home or first screen]
+![TraceView first screen](images/traceview-labeling-ingest.png)
 
 ## Evaluation Goal
 
@@ -24,6 +24,7 @@ You should have one of the following:
 
 - a running TraceView URL from the study organizer
 - a local checkout with setup instructions from `README.md`
+- the evaluator survey form open in a second tab or window
 
 Recommended sample traces are available in `evaluation_samples/`. Each file is
 an 8-step SWE-agent `.traj` window selected to keep labeling work manageable.
@@ -37,22 +38,27 @@ streamlit run traceview.py
 Use a modern browser. Keep the browser window wide enough to see the graph and
 sidebar comfortably.
 
-[IMAGE PLACEHOLDER: Browser showing TraceView loaded]
+![TraceView loaded in a browser](images/traceview-labeling-ingest.png)
 
-## What To Record During Evaluation
+## Use The Survey During Evaluation
 
-While using the app, write down:
+Fill out the survey as you work instead of waiting until the end. Complete the
+consent and background questions before opening the trace. The remaining survey
+sections line up with the tasks below:
 
-- what you expected to happen before each major action
-- what actually happened
-- any text, labels, or controls that felt unclear
-- places where you had to scroll more than expected
-- places where you wanted more context
-- any bugs, lag, visual overlap, or broken navigation
-- one thing you would keep unchanged
-- one thing you would improve first
+- Use `TraceView` as the tool name in your answers. If an older survey copy
+  refers to `Loom` or a generic trajectory analysis tool, treat that as
+  `TraceView`.
+- `Accuracy`: answer after ingest, action labeling, and relationship labeling.
+- `Integrity`: answer after you can explain the agent's repair process.
+- `Applicability`: answer after deciding whether this would fit your own APR debugging workflow.
+- `Completeness`: answer after checking whether the UI provides enough evidence.
+- `Efficiency`: answer while identifying a problematic step, node, relationship, or iteration.
+- `Designs`: answer after moving between Overview, Iteration mode, Detailed mode, and raw evidence.
 
-Use the feedback template at the end of this document.
+For timing questions, start the timer when you begin searching for problematic
+parts of the trajectory in Analysis. Stop it when you can name the problematic
+step, node, relationship, or iteration and explain why you chose it.
 
 ## Evaluation Task 1: First Impression And Navigation
 
@@ -62,7 +68,7 @@ Use the feedback template at the end of this document.
 4. Click each navigation button once.
 5. Return to `Labeling`.
 
-[IMAGE PLACEHOLDER: Main navigation buttons]
+![TraceView navigation buttons](images/traceview-navigation.png)
 
 Evaluate:
 
@@ -70,6 +76,11 @@ Evaluate:
 - Is it clear where a new user should begin?
 - Does the active page state look obvious?
 - Does navigation preserve or reset state in a way that makes sense?
+
+Survey checkpoint:
+
+- Note any navigation confusion for the later free-response questions about
+  interface clarity and hierarchy.
 
 ## Evaluation Task 2: Ingest A Raw Trajectory
 
@@ -79,7 +90,7 @@ Evaluate:
 4. Review any parser warnings.
 5. Continue into the annotation flow.
 
-[IMAGE PLACEHOLDER: Labeling ingest screen]
+![Labeling ingest screen](images/traceview-labeling-ingest.png)
 
 Evaluate:
 
@@ -87,6 +98,12 @@ Evaluate:
 - Is the upload/paste flow understandable?
 - Are parser warnings readable and actionable?
 - Is it clear how many steps were parsed?
+
+Survey checkpoint:
+
+- Use this screen to start judging `Accuracy`: whether the trajectory structure,
+  node types, and iteration order are rendered in a way you can parse without
+  guessing.
 
 ## Evaluation Task 3: Review The Completion Summary
 
@@ -96,7 +113,7 @@ After ingest, review the completion summary before entering the workspace.
 2. Open each tab: `Summary`, `Behavior`, `Action Categories`, and `Issues`.
 3. Use the `Open in single-run workspace` button.
 
-[IMAGE PLACEHOLDER: Completion summary coverage header]
+![Completion summary coverage header](images/traceview-completion-summary.png)
 
 Evaluate:
 
@@ -104,6 +121,11 @@ Evaluate:
 - Are the tabs named clearly?
 - Is it clear that the summary is a review page and not the main editing area?
 - Is the primary next action easy to find?
+
+Survey checkpoint:
+
+- Use the summary tabs to prepare answers about `Integrity`: whether the app
+  helps you understand the agent's repair process as a whole.
 
 ## Evaluation Task 4: Label Action Categories
 
@@ -116,7 +138,7 @@ In the single-run workspace, start with action labeling.
 5. If the provided sample is short, label all actions.
 6. If the sample is long, label enough actions to judge the workflow.
 
-[IMAGE PLACEHOLDER: Action labeling table and sidebar legend]
+![Action labeling table and sidebar legend](images/traceview-action-labeling.png)
 
 Evaluate:
 
@@ -126,6 +148,11 @@ Evaluate:
 - Is the `View` popover useful for longer logs?
 - Do label selections persist immediately?
 - Is scrolling manageable?
+
+Survey checkpoint:
+
+- In `Accuracy`, answer whether the action categories match what you infer from
+  the raw action logs. Record any action category you disagreed with.
 
 ## Evaluation Task 5: Label Relationships
 
@@ -138,7 +165,7 @@ After action labeling is complete, continue to relationship labels.
 5. Open the relationship inspector for at least one relationship.
 6. Switch to another relationship family and repeat briefly.
 
-[IMAGE PLACEHOLDER: Relationship labeling table]
+![Relationship labeling table](images/traceview-relationship-labeling.png)
 
 Evaluate:
 
@@ -149,6 +176,12 @@ Evaluate:
 - Does the relationship inspector provide enough evidence?
 - Is it clear what remains unlabeled?
 
+Survey checkpoint:
+
+- In `Accuracy`, answer whether typed relationships such as follow-up,
+  contradiction, misinterpretation, and no influence match what you infer from
+  the underlying trace.
+
 ## Evaluation Task 6: Export Or Send To Overview
 
 When relationship labeling is available:
@@ -157,7 +190,7 @@ When relationship labeling is available:
 2. Send the labeled trajectory to `Overview`.
 3. Optionally download the annotation JSON or viewer CSV zip.
 
-[IMAGE PLACEHOLDER: Sidebar export controls]
+![Sidebar export controls](images/traceview-export-controls.png)
 
 Evaluate:
 
@@ -165,6 +198,11 @@ Evaluate:
 - Is `Send to overview` easy to find?
 - Is it clear what each download contains?
 - Does the transition to Overview feel successful?
+
+Survey checkpoint:
+
+- Use this step to judge `Applicability`: whether the exported and overview-ready
+  data would fit a real debugging or review workflow.
 
 ## Evaluation Task 7: Review The Run In Overview
 
@@ -175,7 +213,7 @@ In `Overview`:
 3. Note whether the result is shown as unscored.
 4. Open the run in `Analysis`.
 
-[IMAGE PLACEHOLDER: Overview page with labeled run]
+![Overview page with labeled run](images/traceview-overview.png)
 
 Evaluate:
 
@@ -184,22 +222,30 @@ Evaluate:
 - Is the information dense enough without being overwhelming?
 - Is opening Analysis discoverable?
 
+Survey checkpoint:
+
+- Use Overview to decide what the interface helps you understand that would have
+  been hard to get from raw logs.
+
 ## Evaluation Task 8: Inspect The Graph In Analysis
 
 Analysis starts in `Iteration` mode.
 
 1. Confirm that `Iteration` mode is selected by default.
-2. Inspect the collapsed iteration graph.
-3. Click an iteration node.
-4. Review the inspector output.
-5. Switch to `Detailed` mode.
-6. Click a `Thought`, `Action`, or `Result` node.
-7. Try at least one relation filter.
-8. Adjust one layout control, such as node size or label length.
+2. Start a timer.
+3. Inspect the collapsed iteration graph.
+4. Click an iteration node.
+5. Review the inspector output.
+6. Switch to `Detailed` mode.
+7. Click a `Thought`, `Action`, or `Result` node.
+8. Try at least one relation filter.
+9. Adjust one layout control, such as node size or label length.
+10. Stop the timer when you can identify a problematic step, node, relationship,
+    or iteration and explain why it is problematic.
 
-[IMAGE PLACEHOLDER: Analysis iteration graph]
+![Analysis iteration graph](images/traceview-analysis-iteration.png)
 
-[IMAGE PLACEHOLDER: Analysis detailed graph]
+![Analysis detailed graph](images/traceview-analysis-detailed.png)
 
 Evaluate:
 
@@ -210,9 +256,19 @@ Evaluate:
 - Does the graph remain readable after changes?
 - Is the separate inspector page option useful or confusing?
 
+Survey checkpoint:
+
+- In `Completeness`, answer whether the UI gave you enough evidence to judge
+  where and why the run went wrong.
+- In `Efficiency`, record how many minutes it took to identify the problematic
+  part and describe what you looked at first.
+- In `Designs`, answer whether the hierarchy helped you stay oriented while
+  moving between overview, iteration groups, detailed nodes, relationships, and
+  raw logs.
+
 ## Evaluation Task 9: Final Reflection
 
-Answer these questions after completing the workflow:
+Use the remaining survey questions to summarize the evaluation:
 
 1. What was the easiest part of the workflow?
 2. What was the most confusing part?
@@ -222,39 +278,14 @@ Answer these questions after completing the workflow:
 6. Would you trust the exported data? Why or why not?
 7. What should be changed before using this with more evaluators?
 
-## Feedback Template
+Before submitting, check that the survey includes:
 
-Copy this template into your notes.
-
-```text
-Evaluator name:
-Date:
-Browser:
-Operating system:
-Trace used:
-
-Overall rating, 1-5:
-
-What worked well:
-
-What was confusing:
-
-Navigation issues:
-
-Labeling issues:
-
-Overview issues:
-
-Analysis/graph issues:
-
-Missing information:
-
-Bugs or visual problems:
-
-Most important improvement:
-
-Additional comments:
-```
+- the trace filename you evaluated
+- ratings for Accuracy, Integrity, Applicability, Completeness, Efficiency, and
+  Designs
+- the time, in minutes, it took to identify a problematic part of the trajectory
+- a short walkthrough of how you found the problematic part
+- at least one concrete note about missing, confusing, or misleading information
 
 ## Optional Severity Scale
 
