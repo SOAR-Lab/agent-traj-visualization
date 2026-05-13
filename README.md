@@ -59,6 +59,15 @@ That file is only a thin Streamlit entrypoint. The actual implementation lives u
 
 TraceView should be treated as the canonical version of the repo.
 
+## Evaluation Materials
+
+Evaluator-facing materials live in:
+
+- `docs/evaluation_instructions.md`
+- `docs/evaluation_video_script.md`
+- `evaluation_samples/`, which contains short 8-step SWE-agent `.traj` fixtures
+- `tools/create_evaluation_samples.py`, which regenerates those fixtures from local SWE-agent trajectories
+
 ## What The App Does
 
 For a selected task, the app combines up to four kinds of information:
@@ -115,6 +124,14 @@ agent-traj-visualization/
 |- README.md
 |- pyproject.toml
 |- uv.lock
+|- docs/
+|  |- evaluation_instructions.md
+|  |- evaluation_video_script.md
+|- evaluation_samples/
+|  |- README.md
+|  |- *.traj
+|- tools/
+|  |- create_evaluation_samples.py
 |- schema.txt
 |- llm_label_demo.ipynb
 |- traceview_app/
