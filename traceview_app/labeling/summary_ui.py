@@ -363,5 +363,3 @@ def render_summary_screen() -> None:
                 )
             else:
                 st.success("No contradiction, misinterpretation, or misalignment labels found.")
-
-    _render_summary_actions(suffix="bottom")

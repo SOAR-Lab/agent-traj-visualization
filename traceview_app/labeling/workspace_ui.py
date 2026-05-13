@@ -20,7 +20,6 @@ from traceview_app.labeling.common_ui import (
 )
 from traceview_app.labeling.workspace_relationship_ui import (
     discard_invalid_family_labels,
-    render_candidate_detail,
     render_relationship_label_rows,
     sync_relationship_labels_from_widgets,
 )
@@ -114,12 +113,11 @@ def render_workspace_page() -> None:
     if st.session_state.pop(LABELER_WORKSPACE_TOAST_STATE_KEY, False):
         render_labeling_notice(
             "Opening single-run workspace with all annotations applied. "
-            "You can edit any relationship label in the inspector."
+            "You can edit any relationship label in the table."
         )
 
     render_parser_warnings(st.session_state.get(LABELER_ERRORS_STATE_KEY, []))
 
-    st.sidebar.header("Labeling")
     if st.sidebar.button("Back to annotation summary", width="stretch"):
         st.session_state[LABELER_STAGE_STATE_KEY] = LABELER_STAGE_COMPLETE
         st.rerun()
@@ -193,14 +191,3 @@ def render_workspace_page() -> None:
         selected_family=selected_family,
         selected_family_label=selected_family_label,
     )
-
-    candidate_options = {
-        f"{candidate.source_node} -> {candidate.target_node}": candidate
-        for candidate in family_candidates
-    }
-    if candidate_options:
-        selected_candidate_label = st.selectbox(
-            "Inspect relationship",
-            list(candidate_options),
-        )
-        render_candidate_detail(candidate_options[selected_candidate_label], current_labels)

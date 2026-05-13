@@ -3,8 +3,6 @@
 Use this guide to evaluate TraceView from the perspective of someone labeling,
 reviewing, and inspecting an agent trajectory.
 
-![TraceView first screen](images/traceview-labeling-ingest.png)
-
 ## Evaluation Goal
 
 Evaluate whether TraceView helps users:
@@ -37,8 +35,6 @@ streamlit run traceview.py
 
 Use a modern browser. Keep the browser window wide enough to see the graph and
 sidebar comfortably.
-
-![TraceView loaded in a browser](images/traceview-labeling-ingest.png)
 
 ## Use The Survey During Evaluation
 
@@ -162,10 +158,10 @@ After action labeling is complete, continue to relationship labels.
 2. Use the sidebar to choose a relationship family.
 3. Read the sidebar legend for the selected family.
 4. Label at least five relationships.
-5. Open the relationship inspector for at least one relationship.
+5. Open at least two row-level `View` popovers to inspect full source and target logs.
 6. Switch to another relationship family and repeat briefly.
 
-![Relationship labeling table](images/traceview-relationship-labeling.png)
+![Relationship source and target log viewer](images/traceview-relationship-log-view.png)
 
 Evaluate:
 
@@ -173,7 +169,7 @@ Evaluate:
 - Is the selected relationship family obvious?
 - Are allowed labels understandable?
 - Is the compact legend enough to make a labeling decision?
-- Does the relationship inspector provide enough evidence?
+- Do the row-level `View` popovers provide enough source and target evidence?
 - Is it clear what remains unlabeled?
 
 Survey checkpoint:

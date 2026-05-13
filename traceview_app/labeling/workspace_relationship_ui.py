@@ -60,15 +60,26 @@ def discard_invalid_family_labels(
             current_labels.pop(candidate.key, None)
 
 
+def _render_relationship_log_popover(candidate: RelationCandidate) -> None:
+    with st.popover("View", use_container_width=True):
+        st.markdown(f"**{candidate.source_node} -> {candidate.target_node}**")
+        st.caption(family_display_name(candidate.family))
+        st.markdown("**Source evidence**")
+        wrapped_log_block(candidate.source_text)
+        st.markdown("**Target evidence**")
+        wrapped_log_block(candidate.target_text)
+
+
 def render_relationship_label_rows(
     candidates: list[RelationCandidate],
     current_labels: dict[str, str],
 ) -> None:
-    header_cols = st.columns([1.5, 3.0, 3.0, 1.5])
+    header_cols = st.columns([1.2, 2.5, 2.5, 1.1, 1.5])
     black_row_text(header_cols[0], "PAIR", bold=True)
     black_row_text(header_cols[1], "SOURCE PREVIEW", bold=True)
     black_row_text(header_cols[2], "TARGET PREVIEW", bold=True)
-    black_row_text(header_cols[3], "LABEL", bold=True)
+    black_row_text(header_cols[3], "LOGS", bold=True)
+    black_row_text(header_cols[4], "LABEL", bold=True)
 
     for candidate in candidates:
         options = ui_label_options_for_family(candidate.family)
@@ -80,11 +91,13 @@ def render_relationship_label_rows(
         ):
             st.session_state[widget_key] = current_label
 
-        row_cols = st.columns([1.5, 3.0, 3.0, 1.5])
+        row_cols = st.columns([1.2, 2.5, 2.5, 1.1, 1.5])
         black_row_text(row_cols[0], f"{candidate.source_node} -> {candidate.target_node}")
         black_row_text(row_cols[1], short_preview(candidate.source_text, limit=160))
         black_row_text(row_cols[2], short_preview(candidate.target_text, limit=160))
         with row_cols[3]:
+            _render_relationship_log_popover(candidate)
+        with row_cols[4]:
             selected_label = st.selectbox(
                 (
                     f"Relationship label for {candidate.source_node} "
@@ -96,24 +109,3 @@ def render_relationship_label_rows(
                 label_visibility="collapsed",
             )
         _set_relationship_label(candidate, selected_label, current_labels)
-
-
-def render_candidate_detail(
-    candidate: RelationCandidate,
-    current_labels: dict[str, str],
-) -> None:
-    st.markdown("#### Selected Relationship")
-    metric_cols = st.columns(3)
-    metric_cols[0].metric("Family", family_display_name(candidate.family))
-    metric_cols[1].metric("Source", candidate.source_node)
-    metric_cols[2].metric("Target", candidate.target_node)
-
-    st.caption(f"Current label: {label_for_candidate(candidate, current_labels)}")
-
-    source_col, target_col = st.columns(2)
-    with source_col:
-        st.markdown("**Source evidence**")
-        wrapped_log_block(candidate.source_text)
-    with target_col:
-        st.markdown("**Target evidence**")
-        wrapped_log_block(candidate.target_text)
