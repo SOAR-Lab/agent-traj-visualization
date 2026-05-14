@@ -21,7 +21,9 @@ where the app does not behave the way you expected.
 You should have one of the following:
 
 - a running TraceView URL from the study organizer
-- a local checkout with setup instructions from `README.md`
+- a local checkout from the anonymous
+  [TraceView repository](https://anonymous.4open.science/r/agent-traj-visualization-8EF9/)
+  with setup instructions from `README.md`
 - the evaluator survey form open in a second tab or window
 
 Recommended sample traces are available in `evaluation_samples/`. Each file is
