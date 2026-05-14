@@ -44,9 +44,6 @@ Fill out the survey as you work instead of waiting until the end. Complete the
 consent and background questions before opening the trace. The remaining survey
 sections line up with the tasks below:
 
-- Use `TraceView` as the tool name in your answers. If an older survey copy
-  refers to `Loom` or a generic trajectory analysis tool, treat that as
-  `TraceView`.
 - `Accuracy`: answer after ingest, action labeling, and relationship labeling.
 - `Integrity`: answer after you can explain the agent's repair process.
 - `Applicability`: answer after deciding whether this would fit your own APR debugging workflow.
@@ -54,9 +51,10 @@ sections line up with the tasks below:
 - `Efficiency`: answer while identifying a problematic step, node, relationship, or iteration.
 - `Designs`: answer after moving between Overview, Iteration mode, Detailed mode, and raw evidence.
 
-For timing questions, start the timer when you begin searching for problematic
-parts of the trajectory in Analysis. Stop it when you can name the problematic
-step, node, relationship, or iteration and explain why you chose it.
+For timing questions, use the time recorded by the research team. If you are
+self-evaluating, start the timer when you begin searching for problematic parts
+of the trajectory in Analysis. Stop it when you can name the problematic step,
+node, relationship, or iteration and explain why you chose it.
 
 ## Evaluation Task 1: First Impression And Navigation
 
@@ -163,6 +161,8 @@ After action labeling is complete, continue to relationship labels.
 5. Open at least two row-level `View` popovers to inspect full source and target logs.
 6. Switch to another relationship family and repeat briefly.
 
+![Relationship labeling table](images/traceview-relationship-labeling.png)
+
 ![Relationship source and target log viewer](images/traceview-relationship-log-view.png)
 
 Evaluate:
@@ -258,27 +258,30 @@ Survey checkpoint:
 
 - In `Completeness`, answer whether the UI gave you enough evidence to judge
   where and why the run went wrong.
+- In `Efficiency`, answer whether the visual encoding made it easy to
+  distinguish normal progress from problematic transitions.
 - In `Efficiency`, record how many minutes it took to identify the problematic
   part and describe what you looked at first.
-- In `Designs`, answer whether the hierarchy helped you stay oriented while
-  moving between overview, iteration groups, detailed nodes, relationships, and
-  raw logs.
+- In `Designs`, answer whether the hierarchical view was useful and whether it
+  helped you stay oriented while moving between overview, iteration groups,
+  detailed nodes, relationships, and raw logs.
 
 ## Evaluation Task 9: Final Reflection
 
 Use the remaining survey questions to summarize the evaluation:
 
-1. What was the easiest part of the workflow?
-2. What was the most confusing part?
-3. Where did you need more context?
-4. Where did the UI show too much information?
-5. Where did the UI hide information you needed?
-6. Would you trust the exported data? Why or why not?
-7. What should be changed before using this with more evaluators?
+1. Was anything rendered in a way that confused you or that you disagreed with?
+2. Which part of the interface helped you understand the repair process most?
+3. Which part contributed least?
+4. What did the interface help you understand that would have been hard to get
+   from raw logs?
+5. Was there any information you expected to see but could not find?
+6. How did you find the problematic step, node, relationship, or iteration?
+7. What did you look at first?
 
 Before submitting, check that the survey includes:
 
-- the trace filename you evaluated
+- consent, date, and background questions
 - ratings for Accuracy, Integrity, Applicability, Completeness, Efficiency, and
   Designs
 - the time, in minutes, it took to identify a problematic part of the trajectory
