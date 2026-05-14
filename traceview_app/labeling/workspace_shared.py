@@ -13,6 +13,7 @@ from traceview_app.trajectory import (
 )
 
 LABELER_EDITOR_VERSION = "v4"
+MIN_LABELS_TO_ADVANCE = 5
 WORKSPACE_STEP_ACTIONS = "actions"
 WORKSPACE_STEP_RELATIONSHIPS = "relationships"
 
@@ -33,6 +34,18 @@ def option_index(options: tuple[str, ...], label: str) -> int:
         return options.index(label)
     except ValueError:
         return 0
+
+
+def required_label_count(total_count: int) -> int:
+    return min(MIN_LABELS_TO_ADVANCE, max(total_count, 0))
+
+
+def labels_ready(labeled_count: int, total_count: int) -> bool:
+    return labeled_count >= required_label_count(total_count)
+
+
+def remaining_required_labels(labeled_count: int, total_count: int) -> int:
+    return max(required_label_count(total_count) - labeled_count, 0)
 
 
 def count_action_labels(

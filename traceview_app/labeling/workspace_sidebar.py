@@ -20,6 +20,8 @@ from traceview_app.labeling.state import LABELER_WORKSPACE_STEP_STATE_KEY
 from traceview_app.labeling.workspace_shared import (
     WORKSPACE_STEP_ACTIONS,
     WORKSPACE_STEP_RELATIONSHIPS,
+    remaining_required_labels,
+    required_label_count,
 )
 from traceview_app.shared.models import ParsedTrajectory, RelationCandidate
 from traceview_app.trajectory import (
@@ -58,25 +60,34 @@ def render_workspace_sidebar(
     action_labeled_count: int,
     all_candidates: list[RelationCandidate],
     labeled_count: int,
-    actions_complete: bool,
+    actions_ready: bool,
+    relationships_ready: bool,
     workspace_step: str,
     selected_family: str | None = None,
     selected_family_label: str | None = None,
 ) -> None:
     candidate_count = len(all_candidates)
     action_count = len(trajectory.steps)
+    required_actions = required_label_count(action_count)
+    required_relationships = required_label_count(candidate_count)
     progress = labeled_count / candidate_count if candidate_count else 0
     action_progress = action_labeled_count / action_count if action_count else 0
 
     st.sidebar.caption("PROGRESS")
     st.sidebar.progress(
         action_progress,
-        text=f"{action_labeled_count} of {action_count} actions labeled",
+        text=(
+            f"{action_labeled_count} of {action_count} actions labeled "
+            f"({required_actions} required)"
+        ),
     )
     if workspace_step == WORKSPACE_STEP_RELATIONSHIPS:
         st.sidebar.progress(
             progress,
-            text=f"{labeled_count} of {candidate_count} relationships labeled",
+            text=(
+                f"{labeled_count} of {candidate_count} relationships labeled "
+                f"({required_relationships} required)"
+            ),
         )
         st.sidebar.caption(
             f"Unlabeled relationships: {candidate_count - labeled_count}"
@@ -94,7 +105,7 @@ def render_workspace_sidebar(
                 title=legend_title.upper(),
             )
 
-    if workspace_step == WORKSPACE_STEP_ACTIONS and actions_complete:
+    if workspace_step == WORKSPACE_STEP_ACTIONS and actions_ready:
         if st.sidebar.button(
             "Continue to relationship labels",
             type="primary",
@@ -109,12 +120,21 @@ def render_workspace_sidebar(
             st.session_state[LABELER_WORKSPACE_STEP_STATE_KEY] = WORKSPACE_STEP_ACTIONS
             st.rerun()
 
-    can_export = actions_complete and workspace_step == WORKSPACE_STEP_RELATIONSHIPS
-    if not actions_complete:
-        st.sidebar.caption("Finish action labels before exporting.")
+    can_export = (
+        actions_ready
+        and relationships_ready
+        and workspace_step == WORKSPACE_STEP_RELATIONSHIPS
+    )
+    if not actions_ready:
+        remaining = remaining_required_labels(action_labeled_count, action_count)
+        st.sidebar.caption(f"Label {remaining} more actions before exporting.")
         return
     if workspace_step != WORKSPACE_STEP_RELATIONSHIPS:
         st.sidebar.caption("Continue to relationship labels before exporting.")
+        return
+    if not relationships_ready:
+        remaining = remaining_required_labels(labeled_count, candidate_count)
+        st.sidebar.caption(f"Label {remaining} more relationships before exporting.")
         return
 
     st.sidebar.caption("EXPORT")

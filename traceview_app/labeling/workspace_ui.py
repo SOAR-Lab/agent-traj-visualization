@@ -39,6 +39,9 @@ from traceview_app.labeling.workspace_shared import (
     WORKSPACE_STEP_RELATIONSHIPS,
     count_action_labels,
     count_relationship_labels,
+    labels_ready,
+    remaining_required_labels,
+    required_label_count,
 )
 from traceview_app.labeling.workspace_sidebar import render_workspace_sidebar
 from traceview_app.shared.models import ParsedTrajectory
@@ -84,7 +87,7 @@ def _family_sidebar_select() -> tuple[str, str]:
     return selected_family_label, family_options[selected_family_label]
 
 
-def _workspace_step(actions_complete: bool) -> str:
+def _workspace_step(actions_ready: bool) -> str:
     workspace_step = st.session_state.setdefault(
         LABELER_WORKSPACE_STEP_STATE_KEY,
         WORKSPACE_STEP_ACTIONS,
@@ -92,7 +95,7 @@ def _workspace_step(actions_complete: bool) -> str:
     if workspace_step not in (WORKSPACE_STEP_ACTIONS, WORKSPACE_STEP_RELATIONSHIPS):
         workspace_step = WORKSPACE_STEP_ACTIONS
         st.session_state[LABELER_WORKSPACE_STEP_STATE_KEY] = workspace_step
-    if workspace_step == WORKSPACE_STEP_RELATIONSHIPS and not actions_complete:
+    if workspace_step == WORKSPACE_STEP_RELATIONSHIPS and not actions_ready:
         workspace_step = WORKSPACE_STEP_ACTIONS
         st.session_state[LABELER_WORKSPACE_STEP_STATE_KEY] = workspace_step
     return workspace_step
@@ -132,8 +135,10 @@ def render_workspace_page() -> None:
     labeled_count = count_relationship_labels(all_candidates, current_labels)
     action_labeled_count = count_action_labels(trajectory, current_action_labels)
     action_count = len(trajectory.steps)
-    actions_complete = action_labeled_count == action_count
-    workspace_step = _workspace_step(actions_complete)
+    candidate_count = len(all_candidates)
+    actions_ready = labels_ready(action_labeled_count, action_count)
+    relationships_ready = labels_ready(labeled_count, candidate_count)
+    workspace_step = _workspace_step(actions_ready)
 
     if workspace_step == WORKSPACE_STEP_ACTIONS:
         st.markdown("#### Action Labels")
@@ -143,7 +148,8 @@ def render_workspace_page() -> None:
         )
         render_action_label_rows(trajectory, current_action_labels)
         action_labeled_count = count_action_labels(trajectory, current_action_labels)
-        actions_complete = action_labeled_count == action_count
+        actions_ready = labels_ready(action_labeled_count, action_count)
+        relationships_ready = labels_ready(labeled_count, candidate_count)
 
         render_workspace_sidebar(
             trajectory=trajectory,
@@ -152,15 +158,22 @@ def render_workspace_page() -> None:
             action_labeled_count=action_labeled_count,
             all_candidates=all_candidates,
             labeled_count=labeled_count,
-            actions_complete=actions_complete,
+            actions_ready=actions_ready,
+            relationships_ready=relationships_ready,
             workspace_step=workspace_step,
         )
 
-        if actions_complete:
+        if action_labeled_count == action_count:
             st.success("All actions are labeled.")
+        elif actions_ready:
+            st.success(
+                f"{action_labeled_count} action labels are complete. "
+                f"{required_label_count(action_count)} are required to continue."
+            )
         else:
             st.info(
-                f"Label {action_count - action_labeled_count} more actions to "
+                f"Label {remaining_required_labels(action_labeled_count, action_count)} "
+                "more actions to "
                 "continue to relationships."
             )
         return
@@ -178,6 +191,7 @@ def render_workspace_page() -> None:
     )
     render_relationship_label_rows(family_candidates, current_labels)
     labeled_count = count_relationship_labels(all_candidates, current_labels)
+    relationships_ready = labels_ready(labeled_count, candidate_count)
 
     render_workspace_sidebar(
         trajectory=trajectory,
@@ -186,8 +200,22 @@ def render_workspace_page() -> None:
         action_labeled_count=action_labeled_count,
         all_candidates=all_candidates,
         labeled_count=labeled_count,
-        actions_complete=actions_complete,
+        actions_ready=actions_ready,
+        relationships_ready=relationships_ready,
         workspace_step=workspace_step,
         selected_family=selected_family,
         selected_family_label=selected_family_label,
     )
+
+    if labeled_count == candidate_count:
+        st.success("All relationships are labeled.")
+    elif relationships_ready:
+        st.success(
+            f"{labeled_count} relationship labels are complete. "
+            f"{required_label_count(candidate_count)} are required to export."
+        )
+    else:
+        st.info(
+            f"Label {remaining_required_labels(labeled_count, candidate_count)} "
+            "more relationships to export or send to Overview."
+        )
