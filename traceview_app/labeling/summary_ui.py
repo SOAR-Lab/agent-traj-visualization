@@ -36,9 +36,10 @@ from traceview_app.trajectory import (
 )
 
 BEHAVIOR_STATUS_ORDER = ("bad", "loop-ish", "no influence", "labeled", "unlabeled")
+DISTRIBUTION_COLUMN = "Distribution"
 
 
-def _with_share(
+def _with_distribution(
     rows: list[dict[str, object]],
     *,
     count_column: str,
@@ -46,7 +47,7 @@ def _with_share(
 ) -> pd.DataFrame:
     for row in rows:
         count = int(row[count_column])
-        row["Share"] = round((count / total) * 100) if total else 0
+        row[DISTRIBUTION_COLUMN] = round((count / total) * 100) if total else 0
     return pd.DataFrame(rows)
 
 
@@ -66,7 +67,7 @@ def _relationship_count_rows(
             reverse=True,
         )
     )
-    return _with_share(
+    return _with_distribution(
         [row for row in rows if int(row["Count"]) > 0],
         count_column="Count",
         total=stats_candidate_count,
@@ -122,7 +123,7 @@ def _behavior_rows(
 
     detail_df = pd.DataFrame(rows)
     status_counts = Counter(detail_df["Status"])
-    count_df = _with_share(
+    count_df = _with_distribution(
         [
             {"Status": status, "Steps": status_counts[status]}
             for status in BEHAVIOR_STATUS_ORDER
@@ -166,7 +167,7 @@ def _action_category_rows(
             if category_counts[category]
         ]
     )
-    return _with_share(
+    return _with_distribution(
         count_df.to_dict("records"),
         count_column="Steps",
         total=len(detail_df),
@@ -221,8 +222,8 @@ def _render_distribution_table(
         column_config={
             label_column: st.column_config.TextColumn(label_column, width="medium"),
             count_column: st.column_config.NumberColumn(count_column, width="small"),
-            "Share": st.column_config.ProgressColumn(
-                "Share",
+            DISTRIBUTION_COLUMN: st.column_config.ProgressColumn(
+                DISTRIBUTION_COLUMN,
                 min_value=0,
                 max_value=100,
                 format="%d%%",
