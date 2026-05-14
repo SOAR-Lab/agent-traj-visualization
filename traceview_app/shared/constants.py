@@ -38,6 +38,9 @@ ACTIONS_CATEGORIES_FOLDER = "actions_categories"
 ACTIONS_CATEGORIES_ITER_COL = "iteration"
 ACTIONS_CATEGORIES_CAT_COL = "category"
 REL_LABEL_COL = "label"
+STRUCTURAL_EDGE_COLOR = "#D0D0D0"
+STRUCTURAL_FLOW_OPTION = "Core Flow (Structural)"
+STRUCTURAL_REL_LABEL = "Structural"
 
 ACTION_LABEL_OPTIONS = (
     "Explore",
@@ -98,6 +101,7 @@ REL_COLOR = {
     "Misinterpretation": "#E45756",
     "Contradiction": "#E45756",
     "Divergence": "#F58518",
+    STRUCTURAL_REL_LABEL: STRUCTURAL_EDGE_COLOR,
 }
 
 RELATION_LABEL_OPTIONS = (
@@ -175,5 +179,5 @@ EDGE_FAMILY_OPTIONS = (
 )
 
 STRUCTURAL_EDGE_OPTIONS = (
-    "Action → Result (Structural)",
+    STRUCTURAL_FLOW_OPTION,
 )

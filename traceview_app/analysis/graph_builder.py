@@ -17,6 +17,7 @@ from traceview_app.shared.constants import (
     REL_LABEL_COL,
     REL_SPECS,
     RESULT_COLOR,
+    STRUCTURAL_EDGE_COLOR,
     THOUGHT_COLOR,
 )
 from traceview_app.overview.data import category_color, normalize_rel, shorten
@@ -50,39 +51,16 @@ def build_iterations(cat_df: pd.DataFrame) -> list[IterationRecord]:
         return iterations
 
     rows = cat_df.sort_values(ACTIONS_CATEGORIES_ITER_COL).reset_index(drop=True)
-    current_category = None
-    current_steps: list[int] = []
-
     for _, row in rows.iterrows():
         step_index = int(row[ACTIONS_CATEGORIES_ITER_COL])
         category = str(row[ACTIONS_CATEGORIES_CAT_COL])
-
-        if current_category is None:
-            current_category = category
-            current_steps = [step_index]
-        elif category == current_category:
-            current_steps.append(step_index)
-        else:
-            iterations.append(
-                {
-                    "iteration_id": len(iterations),
-                    "category": current_category,
-                    "start_step": current_steps[0],
-                    "end_step": current_steps[-1],
-                    "steps": current_steps[:],
-                }
-            )
-            current_category = category
-            current_steps = [step_index]
-
-    if current_steps:
         iterations.append(
             {
                 "iteration_id": len(iterations),
-                "category": current_category,
-                "start_step": current_steps[0],
-                "end_step": current_steps[-1],
-                "steps": current_steps[:],
+                "category": category,
+                "start_step": step_index,
+                "end_step": step_index,
+                "steps": [step_index],
             }
         )
 
@@ -205,6 +183,63 @@ def build_edge_records(
     return edge_records
 
 
+def add_detailed_structural_flow_edges(
+    *,
+    edges: list[Edge],
+    steps: list[int],
+    edge_records: list[EdgeRecord],
+    controls: SidebarControls,
+    patch_status: str,
+    max_iter: int,
+) -> None:
+    if not controls.show_structural_flow or controls.filters_active:
+        return
+
+    step_set = set(steps)
+    existing_pairs = {
+        (record["source"], record["target"])
+        for record in edge_records
+    }
+
+    def add_edge(source: str, target: str, color: str = STRUCTURAL_EDGE_COLOR) -> None:
+        if (source, target) in existing_pairs:
+            return
+        edges.append(
+            Edge(
+                source=source,
+                target=target,
+                color=color,
+                label="",
+            )
+        )
+        existing_pairs.add((source, target))
+
+    for step_index in steps:
+        add_edge(
+            step_node_id(THOUGHT_NODE_KIND, step_index),
+            step_node_id(ACTION_NODE_KIND, step_index),
+        )
+
+        action_result_color = STRUCTURAL_EDGE_COLOR
+        if step_index == max_iter:
+            action_result_color, _, _ = final_result_node_style(
+                patch_status,
+                controls.node_size,
+            )
+        add_edge(
+            step_node_id(ACTION_NODE_KIND, step_index),
+            step_node_id(RESULT_NODE_KIND, step_index),
+            action_result_color,
+        )
+
+        next_step_index = step_index + 1
+        if next_step_index in step_set:
+            add_edge(
+                step_node_id(RESULT_NODE_KIND, step_index),
+                step_node_id(THOUGHT_NODE_KIND, next_step_index),
+            )
+
+
 def build_graph_elements(
     *,
     steps: list[int],
@@ -285,22 +320,14 @@ def build_graph_elements(
                 )
             )
 
-        if controls.show_structural_ar and not controls.filters_active:
-            for step_index in steps:
-                edge_color = "#D0D0D0"
-                if step_index == max_iter:
-                    edge_color, _, _ = final_result_node_style(
-                        patch_status,
-                        controls.node_size,
-                    )
-                edges.append(
-                    Edge(
-                        source=step_node_id(ACTION_NODE_KIND, step_index),
-                        target=step_node_id(RESULT_NODE_KIND, step_index),
-                        color=edge_color,
-                        label="",
-                    )
-                )
+        add_detailed_structural_flow_edges(
+            edges=edges,
+            steps=steps,
+            edge_records=edge_records,
+            controls=controls,
+            patch_status=patch_status,
+            max_iter=max_iter,
+        )
 
     else:
         for iteration in iterations:
@@ -357,7 +384,7 @@ def build_graph_elements(
                     Edge(
                         source=source,
                         target=target,
-                        color="#D0D0D0",
+                        color=STRUCTURAL_EDGE_COLOR,
                         label="",
                     )
                 )

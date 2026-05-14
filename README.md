@@ -83,10 +83,10 @@ For a selected task, the app combines up to four kinds of information:
 
 From those sources it builds an interactive graph with two views:
 
-- `Iteration` mode: consecutive steps with the same action category collapsed into higher-level grouped nodes
+- `Iteration` mode: one node per source iteration, colored by action category
 - `Detailed` mode: one `T -> A -> R` triplet per step
 
-You can click any node to inspect the underlying text and the labeled relations attached to that node or grouped phase.
+You can click any node to inspect the underlying text and the labeled relations attached to that node.
 
 Uploaded user traces can be exported into the same viewer-compatible CSV structure and sent to Overview. They do not have AutoCodeRover `results.json` entries, so their patch result is shown as unscored.
 
@@ -374,7 +374,7 @@ This file drives:
 
 - the set of displayed steps
 - the action-node color
-- the grouped-node construction in iteration mode
+- the iteration-node construction in iteration mode
 
 ### 2. Relation Label CSVs
 
@@ -498,21 +498,21 @@ An optional structural edge from `Action -> Result` can also be rendered for eac
 
 ### Iteration Mode
 
-In `Iteration` mode, the app groups consecutive steps with the same action category into a single higher-level node.
+In `Iteration` mode, the app shows one higher-level node for each source iteration.
 
 Example:
 
-- if steps `4`, `5`, and `6` are all `Search`
-- they become one grouped node such as `I2`
+- step `6` becomes iteration node `I6`
+- if steps `5` and `6` share the same category, they still render as separate nodes
 
-Grouped nodes are labeled with:
+Iteration nodes are labeled with:
 
 - an `I#` identifier
 - the action category name
 
-Then the app aggregates `Action -> Action` semantic edges into cross-group edges between collapsed iteration nodes.
+Then the app renders `Action -> Action` semantic edges as cross-iteration edges between iteration nodes.
 
-If no semantic filter is active, gray chronological edges are also added between adjacent grouped nodes to preserve the overall sequence.
+If no semantic filter is active, gray chronological edges are also added between adjacent iteration nodes to preserve the overall sequence.
 
 TraceView still contains a heuristic iteration-context extractor, but the derived context text is currently hidden from the UI because uploaded logs can come from inconsistent agent formats.
 
@@ -571,7 +571,7 @@ The sidebar provides:
 
 Note:
 
-- edge family selection is intentionally hidden in `Iteration` mode, because grouped mode shows cross-iteration `Action -> Action` relation edges plus chronological sequence edges
+- edge family selection is intentionally hidden in `Iteration` mode, because iteration mode shows cross-iteration `Action -> Action` relation edges plus chronological sequence edges
 
 ### Main Page Sections
 
@@ -596,15 +596,15 @@ In detailed mode, clicking a node shows:
 - incoming and outgoing relations touching that node
 - the underlying `Thought`, `Action`, or `Result` text
 
-In iteration mode, clicking a grouped node shows:
+In iteration mode, clicking an iteration node shows:
 
-- the grouped iteration id
+- the iteration id
 - the action category
-- relations from previous grouped units
-- relations to later grouped units
-- the full text content for all member steps
+- relations from previous iterations
+- relations to later iterations
+- the full text content for that iteration
 
-Derived action summaries and file-mention context for grouped iterations are currently hidden by default.
+Derived action summaries and file-mention context for iteration nodes are currently hidden by default.
 
 ## Relationship Metrics
 

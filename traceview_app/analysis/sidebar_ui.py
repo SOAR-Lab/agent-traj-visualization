@@ -13,6 +13,10 @@ from traceview_app.shared.models import SidebarControls
 
 INSPECTOR_PAGE_TOGGLE_KEY = "traceview_inspector_separate_page"
 INSPECTOR_PAGE_TOGGLE_QUERY_KEY = "inspector_page"
+ACTION_ACTION_EDGE_FAMILY = "Action → Action"
+DEFAULT_DETAILED_EDGE_FAMILIES = tuple(
+    option for option in EDGE_FAMILY_OPTIONS if option != ACTION_ACTION_EDGE_FAMILY
+)
 
 
 def _query_param_to_bool(value: object) -> bool:
@@ -89,8 +93,8 @@ def render_sidebar_controls(
 
     if graph_mode == "Detailed":
         st.sidebar.header("Relational Edges")
-        default_edge_families = list(EDGE_FAMILY_OPTIONS)
-        if default_controls:
+        default_edge_families = list(DEFAULT_DETAILED_EDGE_FAMILIES)
+        if default_controls and default_controls.graph_mode == "Detailed":
             default_edge_families = [
                 option
                 for option in default_controls.selected_edge_families
@@ -107,12 +111,14 @@ def render_sidebar_controls(
         )
 
         default_structural_edges = list(STRUCTURAL_EDGE_OPTIONS)
-        if default_controls:
-            default_structural_edges = [
+        if default_controls and default_controls.graph_mode == "Detailed":
+            selected_defaults = [
                 option
                 for option in default_controls.selected_structural_edges
                 if option in STRUCTURAL_EDGE_OPTIONS
             ]
+            if selected_defaults or not default_controls.selected_structural_edges:
+                default_structural_edges = selected_defaults
         selected_structural_edges = tuple(
             st.sidebar.pills(
                 "Structural edges",

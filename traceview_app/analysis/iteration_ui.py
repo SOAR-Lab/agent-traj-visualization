@@ -1,4 +1,4 @@
-"""Iteration context UI for collapsed graph mode."""
+"""Iteration context UI for iteration graph mode."""
 
 from __future__ import annotations
 
@@ -52,7 +52,7 @@ def render_iteration_context_panel(
     if show_heading:
         st.markdown("### Iteration Context")
     st.caption(
-        "Collapsed iteration nodes are summarized from the reconstructed log: "
+        "Iteration nodes are summarized from the reconstructed log: "
         "action, files mentioned, and relation signals."
     )
     st.dataframe(

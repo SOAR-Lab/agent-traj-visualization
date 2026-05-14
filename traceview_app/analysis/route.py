@@ -18,6 +18,8 @@ from traceview_app.shared.constants import (
     DETAIL_PAGE_INSPECTOR,
     ROUTE_ANALYSIS,
     ROUTE_INSPECTOR,
+    STRUCTURAL_EDGE_COLOR,
+    STRUCTURAL_REL_LABEL,
 )
 from traceview_app.shared.formatting import format_task_name
 from traceview_app.shared.models import SidebarControls, StaticRelationRecord, ViewContext
@@ -107,7 +109,7 @@ def relation_legend(title: str = "#### Edge Types") -> None:
         ("Loop-ish", "#7F3C8D"),
         ("Bad", "#E45756"),
         ("No influence", "#9E9E9E"),
-        ("Structural", "#D0D0D0"),
+        (STRUCTURAL_REL_LABEL, STRUCTURAL_EDGE_COLOR),
     ]
     st.markdown(title)
     cols = st.columns(3)
@@ -189,9 +191,9 @@ that step and its attached relations.
         """
 ### How to read this graph
 
-Iteration mode collapses consecutive detailed steps with the same action category
-into iteration nodes like `I7`.
-Clicking a node opens the grouped content and cross-iteration relations.
+Iteration mode shows one node per source iteration, labeled like `I7` and
+colored by action category.
+Clicking a node opens the iteration content and its cross-iteration relations.
 """
     )
 

@@ -49,7 +49,17 @@ class SidebarControls:
 
     @property
     def show_structural_ar(self) -> bool:
-        return "Action → Result (Structural)" in self.selected_structural_edges
+        return self.show_structural_flow
+
+    @property
+    def show_structural_flow(self) -> bool:
+        return any(
+            option in self.selected_structural_edges
+            for option in (
+                "Core Flow (Structural)",
+                "Action → Result (Structural)",
+            )
+        )
 
 
 @dataclass(frozen=True)

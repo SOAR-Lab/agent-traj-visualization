@@ -1,4 +1,4 @@
-"""Iteration context summaries for collapsed graph views."""
+"""Iteration context summaries for iteration graph views."""
 
 from __future__ import annotations
 

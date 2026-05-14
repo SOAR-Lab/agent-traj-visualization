@@ -5,7 +5,7 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
-from traceview_app.shared.constants import BAD_RELS, LOOPISH_RELS
+from traceview_app.shared.constants import BAD_RELS, LOOPISH_RELS, STRUCTURAL_REL_LABEL
 from traceview_app.analysis.iteration_context import (
     SHOW_DERIVED_ITERATION_CONTEXT,
     extract_file_mentions,
@@ -100,6 +100,8 @@ def _relation_signal_color(relation: str) -> str:
     }:
         return "green"
     if relation in {"No influence", "No-influence"}:
+        return "gray"
+    if relation == STRUCTURAL_REL_LABEL:
         return "gray"
     return "orange"
 
@@ -328,7 +330,7 @@ def render_inspector(
 
     open_full_inspector = _render_inspector_evidence_header(
         title=f"Iteration {iteration_id}",
-        subtitle=f"Collapsed node {selected_id}",
+        subtitle=f"Iteration node {selected_id}",
         category=iteration["category"],
         span=format_step_range(iteration["steps"]),
         action_context=iteration.get("action_summary", ""),
@@ -353,7 +355,7 @@ def render_inspector(
     if rels_for_iteration:
         st.subheader("Relation Evidence")
         st.caption(
-            "Only cross-iteration relations attached to this collapsed iteration are shown here."
+            "Only cross-iteration relations attached to this iteration are shown here."
         )
         col_prev, col_next = st.columns(2)
         with col_prev:
@@ -368,7 +370,7 @@ def render_inspector(
             )
 
     st.subheader("Raw Log Evidence")
-    st.caption("Each section is one detailed step contained inside this collapsed iteration.")
+    st.caption("This is the raw log evidence for the selected iteration.")
     for step_index in iteration["steps"]:
         entry = log_data.get(step_index, {})
         _render_step_log_evidence(
