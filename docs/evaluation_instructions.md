@@ -30,7 +30,6 @@ where the app does not behave the way you expected.
 
 ## Before You Start
 
-<<<<<<< HEAD
 You should have one of the following:
 
 - a running TraceView URL from the study organizer
@@ -38,11 +37,6 @@ You should have one of the following:
   [TraceView repository](https://anonymous.4open.science/r/agent-traj-visualization-8EF9/)
   with setup instructions from `README.md`
 - the evaluator survey form open in a second tab or window
-=======
-You will run TraceView locally for this evaluation. Before starting the tasks,
-open `README.md`, follow the `Quickstart` section, and make sure the app is
-running in your browser.
->>>>>>> b3974f4 (modified instructions)
 
 Recommended sample traces are available in `evaluation_samples/`. Each file is
 an 8-step SWE-agent `.traj` window selected to keep labeling work manageable.
@@ -55,16 +49,14 @@ Fill out the survey as you work instead of waiting until the end. Complete the
 consent and background questions before opening the trace. The remaining survey
 sections line up with the tasks below:
 
-<<<<<<< HEAD
-=======
-- Use `TraceView` as the tool name in your answers. 
->>>>>>> b3974f4 (modified instructions)
+- Use `TraceView` as the tool name in your answers.
 - `Accuracy`: answer after ingest, action labeling, and relationship labeling.
 - `Integrity`: answer after you can explain the agent's repair process.
 - `Applicability`: answer after deciding whether this would fit your own APR debugging workflow.
 - `Completeness`: answer after checking whether the UI provides enough evidence.
 - `Efficiency`: answer while identifying a problematic step, node, relationship, or iteration.
 - `Designs`: answer after moving between Overview, Iteration mode, Detailed mode, and raw evidence.
+
 
 For timing questions, use the time recorded by the research team. If you are
 self-evaluating, start the timer when you begin searching for problematic parts
