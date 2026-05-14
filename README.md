@@ -13,32 +13,34 @@ The result is an interactive trace viewer for studying how an agent moves throug
 
 If you only need the shortest path:
 
+First, check whether `uv` is installed:
+
+```shell
+uv --version
+```
+
+If that command fails, install `uv` and then open a new terminal:
+
+macOS/Linux:
+
+```shell
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Windows PowerShell:
+
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+Then install the project and run the app (from inside the repository root):
+
 ```shell
 uv sync
 uv run streamlit run traceview.py
 ```
 
-If you do not have `uv`, either install it from the official [uv installation guide](https://docs.astral.sh/uv/getting-started/installation/) or use Python's built-in `venv` plus `pip`:
-
-Windows PowerShell:
-
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-python -m pip install -e .
-streamlit run traceview.py
-```
-
-macOS/Linux:
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -e .
-streamlit run traceview.py
-```
+For other install methods, see the official [uv installation guide](https://docs.astral.sh/uv/getting-started/installation/).
 
 Then:
 
@@ -226,10 +228,28 @@ Primary runtime dependencies include:
 
 ### If You Do Not Have `uv`
 
-You have two options:
+Install `uv`, then open a new terminal so the `uv` command is available on your
+`PATH`.
 
-- Install `uv` from the official [uv installation guide](https://docs.astral.sh/uv/getting-started/installation/), then use the `uv sync` commands below.
-- Use Python's built-in `venv` module and `pip`, which requires no separate project-management tool.
+macOS/Linux:
+
+```shell
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Windows PowerShell:
+
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+Confirm the install:
+
+```shell
+uv --version
+```
+
+Other install methods are listed in the official [uv installation guide](https://docs.astral.sh/uv/getting-started/installation/).
 
 ### Install With `uv`
 
@@ -245,54 +265,12 @@ Then run the app with:
 uv run streamlit run traceview.py
 ```
 
-### Install With `venv` And `pip`
-
-If you prefer built-in Python tooling, create a virtual environment and install the project dependencies from `pyproject.toml`:
-
-Windows PowerShell:
-
-```powershell
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-python -m pip install -e .
-```
-
-macOS/Linux:
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -e .
-```
-
-Then run:
-
-```shell
-streamlit run traceview.py
-```
-
 ## Running The App
 
 From the project root:
 
 ```shell
-streamlit run traceview.py
-```
-
-If you already have a local virtual environment in this checkout:
-
-Windows PowerShell:
-
-```powershell
-.venv\Scripts\streamlit.exe run traceview.py
-```
-
-macOS/Linux:
-
-```bash
-.venv/bin/streamlit run traceview.py
+uv run streamlit run traceview.py
 ```
 
 After launch, the app opens a browser page where you can:

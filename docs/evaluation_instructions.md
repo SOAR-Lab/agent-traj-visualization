@@ -3,6 +3,18 @@
 Use this guide to evaluate TraceView from the perspective of someone labeling,
 reviewing, and inspecting an agent trajectory.
 
+## Background
+
+Automatic program repair (APR) systems try to solve software bugs, including
+GitHub issues in open-source software (OSS) projects. LLM-based APR systems often
+work step by step: at each step they produce a thought, choose an action, and
+receive environment feedback as a result.
+
+TraceView is meant to help people who work with these systems better visualize
+and understand that process: what the system did, what worked, and what did not.
+It turns long text logs into a more intuitive interface for inspecting the
+repair process.
+
 ## Evaluation Goal
 
 Evaluate whether TraceView helps users:
@@ -18,6 +30,7 @@ where the app does not behave the way you expected.
 
 ## Before You Start
 
+<<<<<<< HEAD
 You should have one of the following:
 
 - a running TraceView URL from the study organizer
@@ -25,18 +38,16 @@ You should have one of the following:
   [TraceView repository](https://anonymous.4open.science/r/agent-traj-visualization-8EF9/)
   with setup instructions from `README.md`
 - the evaluator survey form open in a second tab or window
+=======
+You will run TraceView locally for this evaluation. Before starting the tasks,
+open `README.md`, follow the `Quickstart` section, and make sure the app is
+running in your browser.
+>>>>>>> b3974f4 (modified instructions)
 
 Recommended sample traces are available in `evaluation_samples/`. Each file is
 an 8-step SWE-agent `.traj` window selected to keep labeling work manageable.
 
-If running locally, start the app from the project root:
-
-```shell
-streamlit run traceview.py
-```
-
-Use a modern browser. Keep the browser window wide enough to see the graph and
-sidebar comfortably.
+Keep the evaluator survey form open in a second tab or window. 
 
 ## Use The Survey During Evaluation
 
@@ -44,6 +55,10 @@ Fill out the survey as you work instead of waiting until the end. Complete the
 consent and background questions before opening the trace. The remaining survey
 sections line up with the tasks below:
 
+<<<<<<< HEAD
+=======
+- Use `TraceView` as the tool name in your answers. 
+>>>>>>> b3974f4 (modified instructions)
 - `Accuracy`: answer after ingest, action labeling, and relationship labeling.
 - `Integrity`: answer after you can explain the agent's repair process.
 - `Applicability`: answer after deciding whether this would fit your own APR debugging workflow.
@@ -66,12 +81,12 @@ node, relationship, or iteration and explain why you chose it.
 
 ![TraceView navigation buttons](images/traceview-navigation.png)
 
-Evaluate:
+Think about:
 
-- Are the three sections easy to understand?
-- Is it clear where a new user should begin?
-- Does the active page state look obvious?
-- Does navigation preserve or reset state in a way that makes sense?
+- section names
+- where to start
+- active page state
+- state after navigation
 
 Survey checkpoint:
 
@@ -81,19 +96,18 @@ Survey checkpoint:
 ## Evaluation Task 2: Ingest A Raw Trajectory
 
 1. Go to `Labeling`.
-2. Upload or paste the provided trajectory sample.
-3. If a local sample loader is available, you may use that instead.
-4. Review any parser warnings.
-5. Continue into the annotation flow.
+2. Upload or paste one `.traj` file from the repository's
+   `evaluation_samples/` directory e.g., `evaluation_samples/django__django-10924__eval_01_localization.traj`.
+3. Continue into the annotation flow.
 
 ![Labeling ingest screen](images/traceview-labeling-ingest.png)
 
-Evaluate:
+Think about:
 
-- Is it clear what file types or input formats are accepted?
-- Is the upload/paste flow understandable?
-- Are parser warnings readable and actionable?
-- Is it clear how many steps were parsed?
+- accepted file/input format
+- upload or paste flow
+- parser warnings
+- parsed step count
 
 Survey checkpoint:
 
@@ -111,12 +125,12 @@ After ingest, review the completion summary before entering the workspace.
 
 ![Completion summary coverage header](images/traceview-completion-summary.png)
 
-Evaluate:
+Think about:
 
-- Do the coverage metrics make sense?
-- Are the tabs named clearly?
-- Is it clear that the summary is a review page and not the main editing area?
-- Is the primary next action easy to find?
+- coverage metrics
+- tab names
+- summary versus editing area
+- next action
 
 Survey checkpoint:
 
@@ -136,14 +150,14 @@ In the single-run workspace, start with action labeling.
 
 ![Action labeling table and sidebar legend](images/traceview-action-labeling.png)
 
-Evaluate:
+Think about:
 
-- Is it clear that action labels must be completed before relationship labels?
-- Is the sidebar legend useful without being too large?
-- Are action previews long enough to make a decision?
-- Is the `View` popover useful for longer logs?
-- Do label selections persist immediately?
-- Is scrolling manageable?
+- required label order
+- sidebar legend
+- action previews
+- `View` popovers
+- label persistence
+- scrolling
 
 Survey checkpoint:
 
@@ -165,14 +179,14 @@ After action labeling is complete, continue to relationship labels.
 
 ![Relationship source and target log viewer](images/traceview-relationship-log-view.png)
 
-Evaluate:
+Think about:
 
-- Is the transition from action labels to relationship labels clear?
-- Is the selected relationship family obvious?
-- Are allowed labels understandable?
-- Is the compact legend enough to make a labeling decision?
-- Do the row-level `View` popovers provide enough source and target evidence?
-- Is it clear what remains unlabeled?
+- transition from action labels
+- selected relationship family
+- allowed labels
+- compact legend
+- row-level `View` evidence
+- remaining unlabeled items
 
 Survey checkpoint:
 
@@ -190,12 +204,12 @@ When relationship labeling is available:
 
 ![Sidebar export controls](images/traceview-export-controls.png)
 
-Evaluate:
+Think about:
 
-- Are export controls shown only when you expect them?
-- Is `Send to overview` easy to find?
-- Is it clear what each download contains?
-- Does the transition to Overview feel successful?
+- export controls
+- `Send to overview`
+- download meanings
+- transition to Overview
 
 Survey checkpoint:
 
@@ -213,12 +227,12 @@ In `Overview`:
 
 ![Overview page with labeled run](images/traceview-overview.png)
 
-Evaluate:
+Think about:
 
-- Is the uploaded/labeled run easy to find?
-- Is it clear that uploaded traces do not have AutoCodeRover result metadata?
-- Is the information dense enough without being overwhelming?
-- Is opening Analysis discoverable?
+- finding the run
+- unscored uploaded traces
+- information density
+- opening Analysis
 
 Survey checkpoint:
 
@@ -245,14 +259,14 @@ Analysis starts in `Iteration` mode.
 
 ![Analysis detailed graph](images/traceview-analysis-detailed.png)
 
-Evaluate:
+Think about:
 
-- Is Iteration mode a useful default?
-- Is it clear what a collapsed iteration node represents?
-- Is the inspector useful in both graph modes?
-- Are filters and layout controls understandable?
-- Does the graph remain readable after changes?
-- Is the separate inspector page option useful or confusing?
+- Iteration mode default
+- collapsed iteration nodes
+- inspector usefulness
+- filters and layout controls
+- graph readability
+- separate inspector page
 
 Survey checkpoint:
 
