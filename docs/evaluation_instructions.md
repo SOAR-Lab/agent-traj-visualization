@@ -150,7 +150,6 @@ The final quality-criteria questions ask about:
 - `Accuracy`: did the visualization match the original trajectory?
 - `Integrity`: did the interface help you understand the repair process?
 - `Completeness`: was enough evidence available to make judgments?
-- `Efficiency`: did the interface help you find problematic parts quickly?
 - `Design`: did the hierarchy help you move between overview and detail?
 
 Use concrete examples when possible, especially for confusing renderings,

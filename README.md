@@ -186,10 +186,6 @@ agent-traj-visualization/
 |- data/
 |  |- json/
 |     |- results.json
-|     |- normalized_trace.json
-|     |- graph_trace.json
-|     |- file_context.json
-|     |- agraph_graph.json
 ```
 
 ## Which Files Matter For The Current App
@@ -203,8 +199,6 @@ The current Streamlit app primarily depends on:
 - `data/json/results.json`
 
 `results.json` is specific to the bundled AutoCodeRover dataset. User-uploaded trajectories sent from Labeling to Overview are exported as local `*-labeled` viewer files and tracked through a generated, ignored `data/json/labeler_viewer_exports.json` file. These runs are treated as unscored because TraceView cannot infer patch outcomes for arbitrary uploaded logs.
-
-The other JSON files in `data/json/` are legacy artifacts from earlier prototypes and are not used by TraceView.
 
 ## Environment And Setup
 
