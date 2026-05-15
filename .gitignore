@@ -43,6 +43,9 @@ pip-wheel-metadata/
 .streamlit/credentials.toml
 .streamlit/.cache/
 
+# Local evaluation screenshots
+docs/evaluation_smoke_screenshots/
+
 # Local raw trajectory data
 sweagent_claude4_trajs/
 

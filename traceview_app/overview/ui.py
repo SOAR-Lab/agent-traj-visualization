@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import html
+
 import pandas as pd
 import streamlit as st
 
@@ -20,6 +22,33 @@ from traceview_app.shared.models import OverviewRow
 from traceview_app.shared.formatting import format_task_name
 
 OVERVIEW_TABLE_HEIGHT = 930
+
+
+def _render_wrapped_summary_text(
+    text: object,
+    *,
+    font_size: str = "1rem",
+    font_weight: int = 400,
+    color: str = "#111827",
+    line_height: str = "1.25",
+) -> None:
+    st.markdown(
+        (
+            f'<div style="font-size:{font_size};font-weight:{font_weight};'
+            f'color:{color};line-height:{line_height};'
+            'overflow-wrap:anywhere;word-break:break-word;">'
+            f"{html.escape(str(text))}</div>"
+        ),
+        unsafe_allow_html=True,
+    )
+
+
+def _outcome_badge_color(outcome: str) -> str:
+    if outcome == "pass":
+        return "green"
+    if outcome == "fail":
+        return "red"
+    return "gray"
 
 
 def _compact_categories(categories: list[str], limit: int = 5) -> str:
@@ -245,10 +274,24 @@ def render_overview_page(rows: list[OverviewRow]) -> str | None:
                 else None
             )
             st.caption("RUN SUMMARY")
-            st.subheader(format_task_name(selected_row["task_id"]))
-            st.caption(selected_row["task_id"])
+            _render_wrapped_summary_text(
+                format_task_name(selected_row["task_id"]),
+                font_size="1.45rem",
+                font_weight=650,
+                line_height="1.18",
+            )
+            _render_wrapped_summary_text(
+                selected_row["task_id"],
+                font_size="0.85rem",
+                color="#6B7280",
+            )
             metric_cols = st.columns(2)
-            metric_cols[0].metric("Outcome", selected_row["outcome"].upper())
+            with metric_cols[0]:
+                st.caption("Outcome")
+                st.badge(
+                    selected_row["outcome"].upper(),
+                    color=_outcome_badge_color(selected_row["outcome"]),
+                )
             metric_cols[1].metric("Iterations", selected_row["iteration_count"])
             st.markdown("**Behavior**")
             st.write(_compact_categories(selected_row.get("categories", []), limit=10))
