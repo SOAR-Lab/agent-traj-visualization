@@ -6,11 +6,6 @@ import pandas as pd
 import streamlit as st
 
 from traceview_app.shared.constants import BAD_RELS, LOOPISH_RELS, STRUCTURAL_REL_LABEL
-from traceview_app.analysis.iteration_context import (
-    SHOW_DERIVED_ITERATION_CONTEXT,
-    extract_file_mentions,
-    summarize_action,
-)
 from traceview_app.shared.models import EdgeRecord, IterationRecord, SidebarControls
 from traceview_app.shared.node_ids import (
     ACTION_NODE_KIND,
@@ -80,11 +75,6 @@ def _render_iteration_relation_table(title: str, rels: list[dict]) -> None:
     )
 
 
-def _short_path(path: str) -> str:
-    normalized = path.replace("\\", "/").strip()
-    return normalized.rsplit("/", 1)[-1] if "/" in normalized else normalized
-
-
 def _relation_signal_color(relation: str) -> str:
     if relation in BAD_RELS:
         return "red"
@@ -117,15 +107,6 @@ def _flagged_relation_labels(rels: list[dict]) -> list[str]:
     return labels
 
 
-def _render_badge_row(values: list[str], *, color: str = "gray") -> None:
-    if not values:
-        st.caption("none")
-        return
-    with st.container(horizontal=True):
-        for value in values:
-            st.badge(_short_path(value), color=color, help=value)
-
-
 def _render_relation_badges(relations: list[str]) -> None:
     if not relations:
         st.caption("none")
@@ -141,14 +122,11 @@ def _render_inspector_evidence_header(
     subtitle: str,
     category: str,
     span: str,
-    action_context: str,
-    files: list[str],
     incoming_count: int,
     outgoing_count: int,
     flagged_relations: list[str],
     show_full_inspector_button: bool = False,
     show_raw_log_note: bool = True,
-    show_derived_context: bool = True,
 ) -> bool:
     with st.container(border=True):
         st.caption("INSPECTOR TARGET")
@@ -172,21 +150,8 @@ def _render_inspector_evidence_header(
         metric_cols[2].metric("Incoming", incoming_count)
         metric_cols[3].metric("Outgoing", outgoing_count)
 
-        if show_derived_context and action_context:
-            st.markdown("**Action context**")
-            st.write(action_context)
-
-        if show_derived_context:
-            file_col, relation_col = st.columns(2)
-            with file_col:
-                st.markdown("**Files mentioned**")
-                _render_badge_row(files[:4])
-            with relation_col:
-                st.markdown("**Flagged relations**")
-                _render_relation_badges(flagged_relations)
-        else:
-            st.markdown("**Flagged relations**")
-            _render_relation_badges(flagged_relations)
+        st.markdown("**Flagged relations**")
+        _render_relation_badges(flagged_relations)
 
         if show_raw_log_note:
             st.caption("Raw logs below are the evidence for this selected graph target.")
@@ -256,19 +221,12 @@ def render_inspector(
         ]
         incoming = [edge for edge in rels_for_node if edge["target"] == selected_id]
         outgoing = [edge for edge in rels_for_node if edge["source"] == selected_id]
-        files = extract_file_mentions(
-            entry.get("thought", ""),
-            entry.get("action", ""),
-            entry.get("result", ""),
-        )
 
         open_full_inspector = _render_inspector_evidence_header(
             title=f"Step {step_index} · {kind_name}",
             subtitle=f"Detailed node {selected_id}",
             category=category,
             span=f"Step {step_index}",
-            action_context=summarize_action(entry.get("action", "")),
-            files=files,
             incoming_count=len(incoming),
             outgoing_count=len(outgoing),
             flagged_relations=_flagged_relation_labels(rels_for_node),
@@ -333,15 +291,12 @@ def render_inspector(
         subtitle=f"Iteration node {selected_id}",
         category=iteration["category"],
         span=format_step_range(iteration["steps"]),
-        action_context=iteration.get("action_summary", ""),
-        files=iteration.get("files", []),
         incoming_count=len(incoming_rels),
         outgoing_count=len(outgoing_rels),
         flagged_relations=iteration.get("flagged_relations", [])
         or _flagged_relation_labels(rels_for_iteration),
         show_full_inspector_button=show_full_inspector_button,
         show_raw_log_note=standalone,
-        show_derived_context=SHOW_DERIVED_ITERATION_CONTEXT,
     )
 
     if not standalone:

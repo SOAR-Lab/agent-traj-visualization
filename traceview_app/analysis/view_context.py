@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-
 from traceview_app.analysis.graph_builder import (
     build_edge_records,
     build_graph_elements,
@@ -17,12 +15,14 @@ from traceview_app.overview.data import (
     corresponding_log_path,
     derive_primary_patch_status,
     get_patch_categories,
+    is_user_viewer_export_filename,
     load_categories,
     load_labeler_export_metadata,
     load_relation_labels,
     load_results,
     parse_reconstructed_log,
     pull_request_url_from_filename,
+    task_id_from_filename,
 )
 from traceview_app.shared.constants import (
     ACTIONS_CATEGORIES_CAT_COL,
@@ -37,7 +37,7 @@ from traceview_app.shared.models import SidebarControls, ViewContext
 def build_view_context(filename: str, controls: SidebarControls) -> ViewContext:
     labeler_exports = load_labeler_export_metadata(LABELER_VIEWER_EXPORTS_PATH)
     export_meta = labeler_exports.get(filename, {})
-    is_labeler_export = bool(export_meta)
+    is_labeler_export = bool(export_meta) or is_user_viewer_export_filename(filename)
     cat_df = load_categories(filename)
 
     max_iter = int(cat_df[ACTIONS_CATEGORIES_ITER_COL].max())
@@ -55,7 +55,7 @@ def build_view_context(filename: str, controls: SidebarControls) -> ViewContext:
     log_path = corresponding_log_path(filename)
     log_data = parse_reconstructed_log(log_path)
 
-    task_id = str(export_meta.get("task_id") or Path(filename).stem)
+    task_id = str(export_meta.get("task_id") or task_id_from_filename(filename))
     if is_labeler_export:
         matched_patch_categories = []
         patch_status = "UNKNOWN"

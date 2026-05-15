@@ -18,6 +18,7 @@ from traceview_app.shared.constants import (
     REL_LABEL_COL,
     REL_SPECS,
     ROOT,
+    USER_VIEWER_EXPORT_SUFFIX,
 )
 from traceview_app.shared.models import ParsedTrajectory, RelationCandidate
 from traceview_app.trajectory.common import (
@@ -245,9 +246,9 @@ def _viewer_dataset_paths(filename: str) -> list[Path]:
 
 
 def unique_viewer_dataset_filename(task_id: str) -> str:
-    base_stem = safe_viewer_dataset_stem(task_id)
-    candidate_stems = [base_stem, f"{base_stem}-labeled"]
-    candidate_stems.extend(f"{base_stem}-labeled-{index}" for index in range(2, 10_000))
+    base_stem = f"{safe_viewer_dataset_stem(task_id)}{USER_VIEWER_EXPORT_SUFFIX}"
+    candidate_stems = [base_stem]
+    candidate_stems.extend(f"{base_stem}-{index}" for index in range(2, 10_000))
 
     for stem in candidate_stems:
         filename = f"{stem}.csv"

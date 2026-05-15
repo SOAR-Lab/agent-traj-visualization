@@ -24,6 +24,8 @@ from traceview_app.shared.constants import (
     REL_LABEL_COL,
     REL_SPECS,
     ROOT,
+    USER_VIEWER_EXPORT_MARKERS,
+    USER_VIEWER_EXPORT_SUFFIX,
 )
 from traceview_app.shared.models import OverviewRow
 
@@ -51,6 +53,19 @@ def list_task_files() -> list[str]:
     if not base.exists():
         return []
     return sorted(path.name for path in base.glob("*.csv"))
+
+
+def is_user_viewer_export_filename(filename: str) -> bool:
+    stem = Path(filename).stem
+    return any(marker in stem for marker in USER_VIEWER_EXPORT_MARKERS)
+
+
+def task_id_from_filename(filename: str) -> str:
+    stem = Path(filename).stem
+    labeled_index = stem.find(USER_VIEWER_EXPORT_SUFFIX)
+    if labeled_index > 0:
+        return stem[:labeled_index]
+    return stem
 
 
 @st.cache_data
@@ -296,8 +311,8 @@ def build_overview_rows(
 
     for filename in task_files:
         export_meta = labeler_exports.get(filename, {})
-        is_labeler_export = bool(export_meta)
-        task_id = str(export_meta.get("task_id") or Path(filename).stem)
+        is_labeler_export = bool(export_meta) or is_user_viewer_export_filename(filename)
+        task_id = str(export_meta.get("task_id") or task_id_from_filename(filename))
         cat_df = load_categories(filename)
         ordered_categories = (
             cat_df.sort_values(ACTIONS_CATEGORIES_ITER_COL)[ACTIONS_CATEGORIES_CAT_COL]
@@ -343,7 +358,10 @@ def build_overview_rows(
             {
                 "filename": filename,
                 "task_id": task_id,
-                "agent_name": str(export_meta.get("agent_name") or "autocoderover"),
+                "agent_name": str(
+                    export_meta.get("agent_name")
+                    or ("uploaded" if is_labeler_export else "autocoderover")
+                ),
                 "outcome": outcome,
                 "patch_status": patch_status,
                 "matched_patch_categories": matched_patch_categories,

@@ -196,7 +196,7 @@ def _render_summary_actions(*, suffix: str) -> None:
             st.rerun()
     with reset_col:
         if st.button(
-            "Re-annotate with different settings",
+            "Upload another trace",
             width="stretch",
             key=f"summary_reannotate_{suffix}",
         ):

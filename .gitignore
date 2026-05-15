@@ -46,6 +46,13 @@ pip-wheel-metadata/
 # Local raw trajectory data
 sweagent_claude4_trajs/
 
+# Local TraceView exports generated from uploaded traces
+data/json/labeler_viewer_exports.json
+autocoderover_csv/*/*-labeled*.csv
+reconstructed_autocoderover/*-labeled*.txt
+autocoderover_csv/*/*__eval_*.csv
+reconstructed_autocoderover/*__eval_*.txt
+
 # IDE/editor files
 .idea/
 .vscode/

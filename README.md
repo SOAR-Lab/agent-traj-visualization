@@ -186,7 +186,6 @@ agent-traj-visualization/
 |- data/
 |  |- json/
 |     |- results.json
-|     |- labeler_viewer_exports.json
 |     |- normalized_trace.json
 |     |- graph_trace.json
 |     |- file_context.json
@@ -202,9 +201,8 @@ The current Streamlit app primarily depends on:
 - `autocoderover_csv/`
 - `reconstructed_autocoderover/`
 - `data/json/results.json`
-- `data/json/labeler_viewer_exports.json`
 
-`results.json` is specific to the bundled AutoCodeRover dataset. User-uploaded trajectories sent from Labeling to Overview are tracked through `labeler_viewer_exports.json` and are treated as unscored because TraceView cannot infer patch outcomes for arbitrary uploaded logs.
+`results.json` is specific to the bundled AutoCodeRover dataset. User-uploaded trajectories sent from Labeling to Overview are exported as local `*-labeled` viewer files and tracked through a generated, ignored `data/json/labeler_viewer_exports.json` file. These runs are treated as unscored because TraceView cannot infer patch outcomes for arbitrary uploaded logs.
 
 The other JSON files in `data/json/` are legacy artifacts from earlier prototypes and are not used by TraceView.
 
@@ -243,7 +241,7 @@ Windows PowerShell:
 powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
-Confirm the install:
+Confirm the installation:
 
 ```shell
 uv --version
