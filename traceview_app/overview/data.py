@@ -106,6 +106,59 @@ def corresponding_log_path(csv_filename: str) -> Path:
     return LOGS_DIR / Path(csv_filename).with_suffix(".txt").name
 
 
+def viewer_export_paths(filename: str) -> list[Path]:
+    return [
+        ROOT / ACTIONS_CATEGORIES_FOLDER / filename,
+        LOGS_DIR / Path(filename).with_suffix(".txt").name,
+        *[ROOT / family / filename for family in REL_SPECS],
+    ]
+
+
+def _remove_labeler_export_metadata(filename: str) -> None:
+    if not LABELER_VIEWER_EXPORTS_PATH.exists():
+        return
+    try:
+        payload = json.loads(LABELER_VIEWER_EXPORTS_PATH.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return
+    if not isinstance(payload, dict):
+        return
+
+    runs = payload.get("runs")
+    if isinstance(runs, dict):
+        runs.pop(filename, None)
+        if runs:
+            payload["runs"] = runs
+            LABELER_VIEWER_EXPORTS_PATH.write_text(
+                json.dumps(payload, indent=2, ensure_ascii=False),
+                encoding="utf-8",
+            )
+        else:
+            LABELER_VIEWER_EXPORTS_PATH.unlink(missing_ok=True)
+        return
+
+    if filename in payload:
+        payload.pop(filename, None)
+        LABELER_VIEWER_EXPORTS_PATH.write_text(
+            json.dumps(payload, indent=2, ensure_ascii=False),
+            encoding="utf-8",
+        )
+
+
+def delete_user_viewer_export(filename: str) -> list[Path]:
+    export_meta = load_labeler_export_metadata().get(filename, {})
+    if not export_meta and not is_user_viewer_export_filename(filename):
+        raise ValueError("Only user-uploaded TraceView exports can be deleted.")
+
+    deleted_paths = []
+    for path in viewer_export_paths(filename):
+        if path.exists():
+            path.unlink()
+            deleted_paths.append(path)
+    _remove_labeler_export_metadata(filename)
+    return deleted_paths
+
+
 @st.cache_data
 def parse_reconstructed_log(path: Path) -> dict[int, dict[str, str]]:
     if not path.exists():
@@ -373,7 +426,14 @@ def build_overview_rows(
                 "pull_request_url": (
                     None if is_labeler_export else pull_request_url_from_filename(filename)
                 ),
+                "is_user_export": is_labeler_export,
             }
         )
 
-    return rows
+    return sorted(
+        rows,
+        key=lambda row: (
+            not row["is_user_export"],
+            row["filename"].lower(),
+        ),
+    )

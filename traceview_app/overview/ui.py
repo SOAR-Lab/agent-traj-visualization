@@ -5,11 +5,17 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
+from traceview_app.labeling.resume_export import resume_viewer_export_in_workspace
 from traceview_app.shared.constants import (
+    APP_ROUTE_STATE_KEY,
     OVERVIEW_NOTICE_STATE_KEY,
     OVERVIEW_SELECTED_FILE_KEY,
+    ROUTE_LABELING,
 )
-from traceview_app.overview.data import bug_report_url_from_filename
+from traceview_app.overview.data import (
+    bug_report_url_from_filename,
+    delete_user_viewer_export,
+)
 from traceview_app.shared.models import OverviewRow
 from traceview_app.shared.formatting import format_task_name
 
@@ -91,6 +97,48 @@ def _overview_summary_metrics(rows: list[OverviewRow]) -> None:
     metric_cols[2].metric("Fail", fail_count)
     metric_cols[3].metric("Unscored", unscored_count)
     metric_cols[4].metric("Avg iterations", f"{avg_iterations:.1f}")
+
+
+def _render_delete_uploaded_trace(row: OverviewRow) -> None:
+    if not row.get("is_user_export"):
+        return
+
+    with st.popover("Delete uploaded trace", use_container_width=True):
+        st.write(
+            "Remove this uploaded trace from local Overview and Analysis data. "
+            "Bundled AutoCodeRover runs cannot be deleted here."
+        )
+        if st.button(
+            "Delete this trace",
+            type="secondary",
+            width="stretch",
+            key=f"delete_uploaded_trace_{row['filename']}",
+        ):
+            delete_user_viewer_export(row["filename"])
+            st.cache_data.clear()
+            st.session_state.pop(OVERVIEW_SELECTED_FILE_KEY, None)
+            st.session_state[OVERVIEW_NOTICE_STATE_KEY] = (
+                f"Deleted uploaded trace {row['task_id']}."
+            )
+            st.rerun()
+
+
+def _render_continue_labeling(row: OverviewRow) -> None:
+    if not row.get("is_user_export"):
+        return
+
+    if st.button(
+        "Continue labeling trace",
+        width="stretch",
+        key=f"continue_labeling_{row['filename']}",
+    ):
+        try:
+            resume_viewer_export_in_workspace(row["filename"])
+        except ValueError as exc:
+            st.error(str(exc))
+            return
+        st.session_state[APP_ROUTE_STATE_KEY] = ROUTE_LABELING
+        st.rerun()
 
 
 def render_overview_page(rows: list[OverviewRow]) -> str | None:
@@ -230,6 +278,8 @@ def render_overview_page(rows: list[OverviewRow]) -> str | None:
                     selected_row["pull_request_url"],
                     width="stretch",
                 )
+            _render_continue_labeling(selected_row)
+            _render_delete_uploaded_trace(selected_row)
             if st.button("Open analysis", type="primary", width="stretch"):
                 return selected_row["filename"]
 

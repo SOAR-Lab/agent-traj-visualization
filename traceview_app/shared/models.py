@@ -160,3 +160,4 @@ class OverviewRow(TypedDict):
     flagged_relations: list[str]
     first_flagged_iteration: int | None
     pull_request_url: str | None
+    is_user_export: bool
